@@ -1,0 +1,16 @@
+body {
+    background-color: #f6f8fb;
+}
+
+.navbar-brand {
+    font-size: 1.35rem;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+footer {
+    border-top: 1px solid #e6e9ef;
+    margin-top: 40px;
+}

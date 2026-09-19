@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Iniciar sesión — ServiFácil{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3 text-center">Iniciar sesión</h1>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Correo electrónico</label>
+                        <input type="email" name="correo" class="form-control"
+                               value="{{ datos.correo or '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" name="password" class="form-control"
+                               required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        Ingresar
+                    </button>
+                </form>
+                <p class="text-center text-muted mt-3 mb-0">
+                    ¿No tienes cuenta?
+                    <a href="{{ url_for('auth.registro') }}">Regístrate</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

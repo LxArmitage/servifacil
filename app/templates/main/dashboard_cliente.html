@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Mi panel — Cliente{% endblock %}
+
+{% block contenido %}
+<h1 class="h3 mb-1">Hola, {{ current_user.nombre }} 👋</h1>
+<p class="text-muted">Panel de cliente</p>
+
+<div class="row g-4 mt-1">
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Pedir un servicio</h5>
+                <p class="card-text text-muted">
+                    Solicita plomería, electricidad, limpieza y más en tu zona.
+                </p>
+                <button class="btn btn-primary" disabled>Próximamente</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Mis solicitudes</h5>
+                <p class="card-text text-muted">
+                    Aquí verás el estado e historial de tus servicios.
+                </p>
+                <button class="btn btn-outline-primary" disabled>Próximamente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    Este es el <strong>Sprint 1</strong>: ya funcionan el registro, el inicio de
+    sesión y los perfiles por rol. Las solicitudes de servicio llegan en el
+    siguiente sprint.
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Crear cuenta — ServiFácil{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3 text-center">Crear cuenta</h1>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Quiero registrarme como</label>
+                        <select name="rol" id="rol" class="form-select">
+                            <option value="cliente"
+                                {% if datos.rol == 'cliente' or not datos.rol %}selected{% endif %}>
+                                Cliente (necesito un servicio)
+                            </option>
+                            <option value="tecnico"
+                                {% if datos.rol == 'tecnico' %}selected{% endif %}>
+                                Técnico (ofrezco servicios)
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <input type="text" name="nombre" class="form-control"
+                               value="{{ datos.nombre or '' }}" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-7 mb-3">
+                            <label class="form-label">Correo electrónico</label>
+                            <input type="email" name="correo" class="form-control"
+                                   value="{{ datos.correo or '' }}" required>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" name="telefono" class="form-control"
+                                   value="{{ datos.telefono or '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Zona</label>
+                        <select name="zona_id" class="form-select">
+                            <option value="">Selecciona tu zona…</option>
+                            {% for z in zonas %}
+                                <option value="{{ z.id }}"
+                                    {% if datos.zona_id == z.id|string %}selected{% endif %}>
+                                    {{ z }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="campo-descripcion" style="display:none;">
+                        <label class="form-label">
+                            Descripción de tus servicios (para técnicos)
+                        </label>
+                        <textarea name="descripcion" class="form-control" rows="2"
+                                  placeholder="Ej. Plomería y reparación de fugas">{{ datos.descripcion or '' }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" name="password" class="form-control"
+                                   required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Repetir contraseña</label>
+                            <input type="password" name="password2" class="form-control"
+                                   required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Crear cuenta
+                    </button>
+                </form>
+                <p class="text-center text-muted mt-3 mb-0">
+                    ¿Ya tienes cuenta?
+                    <a href="{{ url_for('auth.login') }}">Inicia sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mostrar el campo de descripción solo cuando el rol es técnico
+    const rol = document.getElementById("rol");
+    const campo = document.getElementById("campo-descripcion");
+    function actualizar() {
+        campo.style.display = (rol.value === "tecnico") ? "block" : "none";
+    }
+    rol.addEventListener("change", actualizar);
+    actualizar();
+</script>
+{% endblock %}

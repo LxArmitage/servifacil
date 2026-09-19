@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}ServiFácil — Servicios a domicilio{% endblock %}
+
+{% block contenido %}
+<div class="p-5 mb-4 bg-light rounded-3 text-center">
+    <h1 class="display-5 fw-bold">Encuentra un técnico a domicilio, fácil y rápido</h1>
+    <p class="col-lg-8 mx-auto fs-5 text-muted">
+        ServiFácil conecta a clientes que necesitan un servicio en casa
+        (plomería, electricidad, limpieza, jardinería…) con técnicos
+        disponibles cerca de su zona.
+    </p>
+    <div class="d-flex gap-2 justify-content-center mt-4">
+        <a href="{{ url_for('auth.registro') }}" class="btn btn-primary btn-lg">
+            Crear cuenta
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+            Iniciar sesión
+        </a>
+    </div>
+</div>
+
+<div class="row text-center g-4">
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="fs-1">🧾</div>
+                <h5 class="card-title">Pide tu servicio</h5>
+                <p class="card-text text-muted">
+                    Elige la categoría y tu zona, y describe lo que necesitas.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="fs-1">👷</div>
+                <h5 class="card-title">Un técnico lo toma</h5>
+                <p class="card-text text-muted">
+                    Los técnicos de tu zona ven tu solicitud y la aceptan.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body">
+                <div class="fs-1">⭐</div>
+                <h5 class="card-title">Califica</h5>
+                <p class="card-text text-muted">
+                    Al terminar, calificas al técnico y queda en tu historial.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
