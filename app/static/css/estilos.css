@@ -127,6 +127,19 @@ legend {
 }
 
 
+.opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+}
+
+
+.opcion {
+    font-weight: normal;
+    cursor: pointer;
+}
+
+
 /* =========================================
    BOTONES
    ========================================= */

@@ -59,11 +59,16 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="mb-3" id="campo-descripcion" style="display:none;">
-            <label for="descripcion" class="form-label">
-                Descripción de tus servicios
-            </label>
+    </fieldset>
+
+    <!-- SERVICIOS (solo técnicos) -->
+    <fieldset id="campo-tecnico" style="display:none;">
+        <legend>Servicios que ofreces</legend>
+        {% include "servicios/_categorias_checkbox.html" %}
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
             <textarea id="descripcion" name="descripcion" class="form-control" rows="2"
+                      maxlength="200"
                       placeholder="Ej. Plomería y reparación de fugas">{{ datos.descripcion or '' }}</textarea>
         </div>
     </fieldset>
@@ -97,9 +102,9 @@
 </p>
 
 <script>
-    // Mostrar el campo de descripción solo cuando el rol es técnico
+    // Mostrar la sección de servicios solo cuando el rol es técnico
     const rol = document.getElementById("rol");
-    const campo = document.getElementById("campo-descripcion");
+    const campo = document.getElementById("campo-tecnico");
     function actualizar() {
         campo.style.display = (rol.value === "tecnico") ? "block" : "none";
     }

@@ -26,6 +26,10 @@
     </tr>
     <tr>
         <th>Servicios que ofrezco</th>
+        <td>{{ perfil.categorias_texto or "Sin servicios registrados" }}</td>
+    </tr>
+    <tr>
+        <th>Descripción</th>
         <td>{{ perfil.descripcion or "Sin descripción" }}</td>
     </tr>
     <tr>
@@ -33,6 +37,11 @@
         <td>{{ current_user.creado.strftime("%d/%m/%Y") }}</td>
     </tr>
 </table>
+<p>
+    <a href="{{ url_for('servicios.perfil_tecnico') }}" class="btn btn-outline-secondary btn-sm">
+        Editar mi perfil
+    </a>
+</p>
 
 <h2>Solicitudes de mi zona</h2>
 <div class="tabla-contenedor">

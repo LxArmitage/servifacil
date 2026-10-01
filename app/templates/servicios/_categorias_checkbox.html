@@ -1,0 +1,13 @@
+<!-- Casillas de categorías; se usa en el registro y en el perfil del técnico -->
+<div class="mb-3">
+    <label class="form-label d-block">Selecciona uno o varios servicios</label>
+    <div class="opciones">
+        {% for c in categorias %}
+            <label class="opcion">
+                <input type="checkbox" name="categorias" value="{{ c.id }}"
+                       {% if c.id|string in seleccionadas %}checked{% endif %}>
+                {{ c.nombre }}
+            </label>
+        {% endfor %}
+    </div>
+</div>

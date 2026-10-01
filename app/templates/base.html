@@ -26,6 +26,13 @@
                                 Mi panel
                             </a>
                         </li>
+                        {% if current_user.rol == "tecnico" %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('servicios.perfil_tecnico') }}">
+                                    Mi perfil
+                                </a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <span class="navbar-text px-lg-2">
                                 {{ current_user.nombre }}

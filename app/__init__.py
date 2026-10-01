@@ -21,8 +21,10 @@ def create_app(config_class=Config):
     # Blueprints
     from app.auth.routes import auth_bp
     from app.main.routes import main_bp
+    from app.servicios.routes import servicios_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+    app.register_blueprint(servicios_bp)
 
     # Crear tablas y datos iniciales (zonas y administrador)
     with app.app_context():

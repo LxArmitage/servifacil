@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil — ServiFácil{% endblock %}
+
+{% block ancho %}contenedor-medio{% endblock %}
+
+{% block contenido %}
+<h1>Mi perfil de técnico</h1>
+<p class="subtitulo">Estos datos los ven los clientes cuando buscan un servicio</p>
+
+<form method="POST">
+
+    <!-- DATOS DE CONTACTO -->
+    <fieldset>
+        <legend>Datos de contacto</legend>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre completo</label>
+            <input type="text" id="nombre" name="nombre" class="form-control"
+                   value="{{ datos.nombre or '' }}" required>
+        </div>
+        <div class="row">
+            <div class="col-md-5 mb-3">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="tel" id="telefono" name="telefono" class="form-control"
+                       value="{{ datos.telefono or '' }}">
+            </div>
+            <div class="col-md-7 mb-3">
+                <label for="zona_id" class="form-label">Zona donde trabajo</label>
+                <select name="zona_id" id="zona_id" class="form-select">
+                    <option value="">Selecciona tu zona...</option>
+                    {% for z in zonas %}
+                        <option value="{{ z.id }}"
+                            {% if datos.zona_id == z.id|string %}selected{% endif %}>
+                            {{ z }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- SERVICIOS -->
+    <fieldset>
+        <legend>Servicios que ofrezco</legend>
+        {% include "servicios/_categorias_checkbox.html" %}
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea id="descripcion" name="descripcion" class="form-control" rows="3"
+                      maxlength="200"
+                      placeholder="Ej. 10 años de experiencia en reparación de fugas">{{ datos.descripcion or '' }}</textarea>
+        </div>
+    </fieldset>
+
+    <div class="botones">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+            Cancelar
+        </a>
+    </div>
+</form>
+{% endblock %}

@@ -4,7 +4,7 @@ from flask import (
 from flask_login import login_user, logout_user, login_required, current_user
 
 from app import db
-from app.models import Usuario, Cliente, Tecnico, Zona
+from app.models import Usuario, Cliente, Tecnico, Zona, Categoria
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -15,6 +15,7 @@ def registro():
         return redirect(url_for("main.dashboard"))
 
     zonas = Zona.query.order_by(Zona.nombre).all()
+    categorias = Categoria.query.filter_by(activa=True).order_by(Categoria.nombre).all()
 
     if request.method == "POST":
         nombre = (request.form.get("nombre") or "").strip()
@@ -25,6 +26,7 @@ def registro():
         telefono = (request.form.get("telefono") or "").strip()
         zona_id = request.form.get("zona_id") or None
         descripcion = (request.form.get("descripcion") or "").strip()
+        categorias_ids = request.form.getlist("categorias")
 
         # Validaciones
         errores = []
@@ -32,6 +34,8 @@ def registro():
             errores.append("Nombre, correo y contraseña son obligatorios.")
         if rol not in ("cliente", "tecnico"):
             errores.append("Selecciona un tipo de cuenta válido.")
+        if rol == "tecnico" and not categorias_ids:
+            errores.append("Selecciona al menos un servicio que ofreces.")
         if password != password2:
             errores.append("Las contraseñas no coinciden.")
         if len(password) < 6:
@@ -43,7 +47,8 @@ def registro():
             for e in errores:
                 flash(e, "danger")
             return render_template(
-                "auth/registro.html", zonas=zonas, datos=request.form
+                "auth/registro.html", zonas=zonas, categorias=categorias,
+                datos=request.form, seleccionadas=categorias_ids
             )
 
         # Crear usuario y su perfil según el rol
@@ -57,17 +62,24 @@ def registro():
                 usuario_id=usuario.id, telefono=telefono, zona_id=zona_id
             ))
         else:
-            db.session.add(Tecnico(
+            tecnico = Tecnico(
                 usuario_id=usuario.id, telefono=telefono,
                 descripcion=descripcion, zona_id=zona_id
-            ))
+            )
+            tecnico.categorias = Categoria.query.filter(
+                Categoria.id.in_(categorias_ids)
+            ).all()
+            db.session.add(tecnico)
 
         db.session.commit()
         login_user(usuario)
         flash("¡Cuenta creada! Bienvenido a ServiFácil.", "success")
         return redirect(url_for("main.dashboard"))
 
-    return render_template("auth/registro.html", zonas=zonas, datos={})
+    return render_template(
+        "auth/registro.html", zonas=zonas, categorias=categorias,
+        datos={}, seleccionadas=[]
+    )
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
