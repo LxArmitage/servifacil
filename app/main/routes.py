@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required, current_user
 
-from app.models import Categoria, Solicitud, Usuario, Zona
+from app import db
+from app.models import Categoria, Solicitud, Usuario, Zona, ESTADO_NOMBRES
 
 main_bp = Blueprint("main", __name__)
 
@@ -23,12 +24,22 @@ def dashboard():
         usuarios = Usuario.query.order_by(Usuario.creado).all()
         total_tecnicos = Usuario.query.filter_by(rol="tecnico").count()
         total_clientes = Usuario.query.filter_by(rol="cliente").count()
+
+        solicitudes = Solicitud.query.order_by(Solicitud.creada.desc()).all()
+        conteo = dict(
+            db.session.query(Solicitud.estado, db.func.count())
+            .group_by(Solicitud.estado).all()
+        )
+        por_estado = [(nombre, conteo.get(clave, 0))
+                      for clave, nombre in ESTADO_NOMBRES.items()]
         return render_template(
             "main/dashboard_admin.html",
             usuarios=usuarios,
             total_usuarios=len(usuarios),
             total_tecnicos=total_tecnicos,
             total_clientes=total_clientes,
+            solicitudes=solicitudes,
+            por_estado=por_estado,
         )
     if current_user.rol == "tecnico":
         propias = Solicitud.query.filter_by(tecnico_id=current_user.tecnico.id)

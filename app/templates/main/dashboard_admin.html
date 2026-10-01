@@ -3,23 +3,74 @@
 
 {% block contenido %}
 <h1>Panel de administración</h1>
-<p class="subtitulo">Usuarios registrados en la plataforma</p>
+<p class="subtitulo">Usuarios y solicitudes de la plataforma</p>
 
-<h2>Resumen</h2>
-<table class="tabla tabla-resumen">
-    <tr>
-        <th>Usuarios registrados</th>
-        <td>{{ total_usuarios }}</td>
-    </tr>
-    <tr>
-        <th>Clientes</th>
-        <td>{{ total_clientes }}</td>
-    </tr>
-    <tr>
-        <th>Técnicos</th>
-        <td>{{ total_tecnicos }}</td>
-    </tr>
-</table>
+<div class="row">
+    <div class="col-md-6">
+        <h2>Usuarios</h2>
+        <table class="tabla tabla-resumen">
+            <tr>
+                <th>Usuarios registrados</th>
+                <td>{{ total_usuarios }}</td>
+            </tr>
+            <tr>
+                <th>Clientes</th>
+                <td>{{ total_clientes }}</td>
+            </tr>
+            <tr>
+                <th>Técnicos</th>
+                <td>{{ total_tecnicos }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="col-md-6">
+        <h2>Solicitudes por estado</h2>
+        <table class="tabla tabla-resumen">
+            {% for nombre, total in por_estado %}
+            <tr>
+                <th>{{ nombre }}</th>
+                <td>{{ total }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<h2>Solicitudes de servicio</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Técnico</th>
+                <th>Servicio</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in solicitudes %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.fecha_servicio|fecha }}</td>
+                <td>{{ s.cliente.usuario.nombre }}</td>
+                <td>{{ s.tecnico.usuario.nombre }}</td>
+                <td>{{ s.categoria.nombre }}</td>
+                <td><span class="estado estado-{{ s.estado }}">{{ s.estado_nombre }}</span></td>
+                <td>
+                    <a href="{{ url_for('servicios.detalle', solicitud_id=s.id) }}">Ver</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="vacio">Todavía no hay solicitudes.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 <h2>Lista de usuarios</h2>
 <div class="tabla-contenedor">

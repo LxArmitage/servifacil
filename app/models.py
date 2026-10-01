@@ -1,9 +1,8 @@
-from datetime import datetime
-
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, login_manager
+from app.fechas import ahora_utc
 
 # Roles disponibles en la plataforma
 ROLES = ("cliente", "tecnico", "administrador")
@@ -66,7 +65,7 @@ class Usuario(UserMixin, db.Model):
     correo = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     rol = db.Column(db.String(20), nullable=False, default="cliente")
-    creado = db.Column(db.DateTime, default=datetime.utcnow)
+    creado = db.Column(db.DateTime, default=ahora_utc)
 
     cliente = db.relationship(
         "Cliente", backref="usuario", uselist=False,
@@ -153,8 +152,8 @@ class Solicitud(db.Model):
     fecha_servicio = db.Column(db.Date, nullable=False)
     descripcion = db.Column(db.String(300), nullable=False)
     estado = db.Column(db.String(20), nullable=False, default="pendiente")
-    creada = db.Column(db.DateTime, default=datetime.utcnow)
-    actualizada = db.Column(db.DateTime, default=datetime.utcnow)
+    creada = db.Column(db.DateTime, default=ahora_utc)
+    actualizada = db.Column(db.DateTime, default=ahora_utc)
 
     cliente = db.relationship("Cliente", backref="solicitudes")
     tecnico = db.relationship("Tecnico", backref="solicitudes")

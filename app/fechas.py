@@ -5,6 +5,11 @@ from datetime import datetime, timedelta, timezone
 HORA_DURANGO = timezone(timedelta(hours=-6), "Durango")
 
 
+def ahora_utc():
+    """Fecha y hora actual en UTC, sin zona horaria (así se guarda en la BD)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 def hoy_durango():
     """Fecha de hoy en Durango, aunque el servidor esté en otra zona horaria."""
     return datetime.now(HORA_DURANGO).date()

@@ -5,7 +5,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.decoradores import rol_requerido
-from app.fechas import hoy_durango
+from app.fechas import ahora_utc, hoy_durango
 from app.models import (
     Categoria, Solicitud, Tecnico, Usuario, Zona, ESTADO_NOMBRES, FLUJO_ESTADOS,
 )
@@ -189,7 +189,7 @@ def cambiar_estado(solicitud_id):
             )
         else:
             solicitud.estado = nuevo
-            solicitud.actualizada = datetime.utcnow()
+            solicitud.actualizada = ahora_utc()
             db.session.commit()
             flash(mensaje, "success")
 
