@@ -1,40 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Mi panel — Administrador{% endblock %}
+{% block title %}Administración — ServiFácil{% endblock %}
 
 {% block contenido %}
-<h1 class="h3 mb-1">Panel de administración</h1>
-<p class="text-muted">Hola, {{ current_user.nombre }}</p>
+<h1>Panel de administración</h1>
+<p class="subtitulo">Usuarios registrados en la plataforma</p>
 
-<div class="row g-4 mt-1">
-    <div class="col-md-4">
-        <div class="card text-bg-primary shadow-sm">
-            <div class="card-body text-center">
-                <div class="display-6">{{ total_usuarios }}</div>
-                <div>Usuarios registrados</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-bg-success shadow-sm">
-            <div class="card-body text-center">
-                <div class="display-6">{{ total_tecnicos }}</div>
-                <div>Técnicos</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-bg-secondary shadow-sm">
-            <div class="card-body text-center">
-                <div class="display-6">{{ total_clientes }}</div>
-                <div>Clientes</div>
-            </div>
-        </div>
-    </div>
-</div>
+<h2>Resumen</h2>
+<table class="tabla tabla-resumen">
+    <tr>
+        <th>Usuarios registrados</th>
+        <td>{{ total_usuarios }}</td>
+    </tr>
+    <tr>
+        <th>Clientes</th>
+        <td>{{ total_clientes }}</td>
+    </tr>
+    <tr>
+        <th>Técnicos</th>
+        <td>{{ total_tecnicos }}</td>
+    </tr>
+</table>
 
-<div class="alert alert-info mt-4">
-    <strong>Sprint 1</strong> completo: registro, inicio de sesión y roles.
-    La administración de categorías, zonas y reportes se amplía en los
-    siguientes sprints.
+<h2>Lista de usuarios</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Zona</th>
+                <th>Fecha de registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.id }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.correo }}</td>
+                <td>{{ usuario.rol_nombre }}</td>
+                <td>
+                    {% if usuario.perfil and usuario.perfil.zona %}
+                        {{ usuario.perfil.zona.nombre }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ usuario.creado.strftime("%d/%m/%Y") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

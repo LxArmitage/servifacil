@@ -2,56 +2,49 @@
 {% block title %}ServiFácil — Servicios a domicilio{% endblock %}
 
 {% block contenido %}
-<div class="p-5 mb-4 bg-light rounded-3 text-center">
-    <h1 class="display-5 fw-bold">Encuentra un técnico a domicilio, fácil y rápido</h1>
-    <p class="col-lg-8 mx-auto fs-5 text-muted">
-        ServiFácil conecta a clientes que necesitan un servicio en casa
-        (plomería, electricidad, limpieza, jardinería…) con técnicos
-        disponibles cerca de su zona.
-    </p>
-    <div class="d-flex gap-2 justify-content-center mt-4">
-        <a href="{{ url_for('auth.registro') }}" class="btn btn-primary btn-lg">
-            Crear cuenta
-        </a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
-            Iniciar sesión
-        </a>
-    </div>
+<h1>ServiFácil</h1>
+<p class="subtitulo">Servicios a domicilio en Victoria de Durango</p>
+
+<p>
+    ¿Se te descompuso algo en casa? En ServiFácil registras lo que
+    necesitas y un técnico de tu zona atiende tu solicitud. Si tú ofreces
+    servicios, regístrate como técnico para recibir solicitudes.
+</p>
+
+<div class="botones">
+    <a href="{{ url_for('auth.registro') }}" class="btn btn-primary">
+        Crear cuenta
+    </a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
+        Iniciar sesión
+    </a>
 </div>
 
-<div class="row text-center g-4">
-    <div class="col-md-4">
-        <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="fs-1">🧾</div>
-                <h5 class="card-title">Pide tu servicio</h5>
-                <p class="card-text text-muted">
-                    Elige la categoría y tu zona, y describe lo que necesitas.
-                </p>
-            </div>
-        </div>
+<h2>¿Cómo funciona?</h2>
+<ol>
+    <li>Te registras como cliente e indicas tu zona.</li>
+    <li>Mandas una solicitud con el servicio, la dirección y la fecha.</li>
+    <li>Un técnico de tu zona acepta la solicitud y va a tu domicilio.</li>
+    <li>Al terminar, calificas el servicio y queda en tu historial.</li>
+</ol>
+
+<div class="row">
+    <div class="col-md-6">
+        <h2>Servicios</h2>
+        <ul>
+            <li>Plomería</li>
+            <li>Electricidad</li>
+            <li>Limpieza</li>
+            <li>Jardinería</li>
+        </ul>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="fs-1">👷</div>
-                <h5 class="card-title">Un técnico lo toma</h5>
-                <p class="card-text text-muted">
-                    Los técnicos de tu zona ven tu solicitud y la aceptan.
-                </p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100 border-0 shadow-sm">
-            <div class="card-body">
-                <div class="fs-1">⭐</div>
-                <h5 class="card-title">Califica</h5>
-                <p class="card-text text-muted">
-                    Al terminar, calificas al técnico y queda en tu historial.
-                </p>
-            </div>
-        </div>
+    <div class="col-md-6">
+        <h2>Zonas con servicio</h2>
+        <ul>
+            {% for zona in zonas %}
+                <li>{{ zona.nombre }}</li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 {% endblock %}

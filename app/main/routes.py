@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required, current_user
 
-from app.models import Usuario
+from app.models import Usuario, Zona
 
 main_bp = Blueprint("main", __name__)
 
@@ -10,7 +10,8 @@ main_bp = Blueprint("main", __name__)
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
-    return render_template("index.html")
+    zonas = Zona.query.filter(Zona.nombre != "Otra").order_by(Zona.nombre).all()
+    return render_template("index.html", zonas=zonas)
 
 
 @main_bp.route("/dashboard")
@@ -18,12 +19,13 @@ def index():
 def dashboard():
     """Muestra el panel según el rol del usuario."""
     if current_user.rol == "administrador":
-        total_usuarios = Usuario.query.count()
+        usuarios = Usuario.query.order_by(Usuario.creado).all()
         total_tecnicos = Usuario.query.filter_by(rol="tecnico").count()
         total_clientes = Usuario.query.filter_by(rol="cliente").count()
         return render_template(
             "main/dashboard_admin.html",
-            total_usuarios=total_usuarios,
+            usuarios=usuarios,
+            total_usuarios=len(usuarios),
             total_tecnicos=total_tecnicos,
             total_clientes=total_clientes,
         )

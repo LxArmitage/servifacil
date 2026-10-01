@@ -8,6 +8,13 @@ from app import db, login_manager
 # Roles disponibles en la plataforma
 ROLES = ("cliente", "tecnico", "administrador")
 
+# Nombre de cada rol tal como se muestra en pantalla
+ROL_NOMBRES = {
+    "cliente": "Cliente",
+    "tecnico": "Técnico",
+    "administrador": "Administrador",
+}
+
 
 class Zona(db.Model):
     __tablename__ = "zonas"
@@ -48,6 +55,15 @@ class Usuario(UserMixin, db.Model):
     @property
     def es_admin(self):
         return self.rol == "administrador"
+
+    @property
+    def rol_nombre(self):
+        return ROL_NOMBRES.get(self.rol, self.rol)
+
+    @property
+    def perfil(self):
+        """Datos de cliente o de técnico según el rol (None para el administrador)."""
+        return self.cliente or self.tecnico
 
     def __str__(self):
         return f"{self.nombre} ({self.rol})"

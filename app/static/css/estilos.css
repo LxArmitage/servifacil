@@ -1,16 +1,230 @@
+/* =========================================
+   CONFIGURACIÓN GENERAL
+   (ajusta los valores por defecto de Bootstrap)
+   ========================================= */
+
+:root {
+    --bs-body-font-family: Arial, Helvetica, sans-serif;
+    --bs-body-color: #333333;
+
+    --bs-border-radius: 2px;
+    --bs-border-radius-sm: 2px;
+    --bs-border-radius-lg: 2px;
+    --bs-border-radius-xl: 2px;
+    --bs-border-radius-xxl: 2px;
+}
+
+
 body {
-    background-color: #f6f8fb;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f2f4f7;
 }
 
-.navbar-brand {
-    font-size: 1.35rem;
+
+/* =========================================
+   BARRA DE NAVEGACIÓN
+   ========================================= */
+
+.barra {
+    background-color: #2c3e50;
+    border-bottom: 3px solid #e67e22;
 }
 
-.card {
-    border-radius: 12px;
+
+.barra .navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
 }
+
+
+.barra .navbar-text {
+    color: #cfd6dd;
+}
+
+
+/* =========================================
+   CONTENEDOR PRINCIPAL
+   ========================================= */
+
+main {
+    flex: 1;
+    padding: 30px 12px;
+}
+
+
+.contenedor {
+    max-width: 1000px;
+    margin: auto;
+    background-color: white;
+    padding: 30px 35px;
+    border: 1px solid #d6d9de;
+}
+
+
+.contenedor-chico {
+    max-width: 480px;
+}
+
+
+.contenedor-medio {
+    max-width: 720px;
+}
+
+
+/* =========================================
+   TÍTULOS
+   ========================================= */
+
+h1 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+
+h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #dddddd;
+    padding-bottom: 8px;
+}
+
+
+.subtitulo {
+    text-align: center;
+    color: #666666;
+    margin-bottom: 25px;
+}
+
+
+/* =========================================
+   FORMULARIOS
+   ========================================= */
+
+fieldset {
+    border: 1px solid #cccccc;
+    margin-bottom: 20px;
+    padding: 5px 20px 10px;
+}
+
+
+legend {
+    float: none;
+    width: auto;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 0 8px;
+}
+
+
+.form-label {
+    font-weight: bold;
+}
+
+
+/* =========================================
+   BOTONES
+   ========================================= */
+
+.btn-primary {
+    --bs-btn-bg: #2c3e50;
+    --bs-btn-border-color: #2c3e50;
+    --bs-btn-hover-bg: #1f2d3a;
+    --bs-btn-hover-border-color: #1f2d3a;
+    --bs-btn-active-bg: #1a252f;
+    --bs-btn-active-border-color: #1a252f;
+}
+
+
+.botones {
+    text-align: center;
+    margin-top: 20px;
+}
+
+
+/* =========================================
+   TABLAS
+   ========================================= */
+
+.tabla-contenedor {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+
+.tabla th,
+.tabla td {
+    border: 1px solid #dddddd;
+    padding: 10px 12px;
+    text-align: left;
+}
+
+
+.tabla th {
+    background-color: #f1f1f1;
+}
+
+
+.tabla-datos th {
+    width: 30%;
+}
+
+
+.tabla-resumen {
+    max-width: 450px;
+}
+
+
+.tabla-resumen th {
+    width: 70%;
+}
+
+
+.tabla .vacio {
+    text-align: center;
+    color: #777777;
+}
+
+
+/* =========================================
+   PIE DE PÁGINA
+   ========================================= */
 
 footer {
-    border-top: 1px solid #e6e9ef;
-    margin-top: 40px;
+    text-align: center;
+    color: #777777;
+    font-size: 0.9rem;
+    padding: 15px;
+    border-top: 1px solid #dddddd;
+    background-color: white;
+}
+
+
+/* =========================================
+   DISEÑO RESPONSIVO
+   ========================================= */
+
+@media (max-width: 700px) {
+
+    main {
+        padding: 15px 8px;
+    }
+
+
+    .contenedor {
+        padding: 20px 15px;
+    }
+
 }
