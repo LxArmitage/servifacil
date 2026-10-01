@@ -1,0 +1,23 @@
+{# Botones del técnico según el estado de la solicitud.
+   "volver" indica a qué página regresar: "panel" o "detalle". #}
+{% macro acciones(s, volver) %}
+<form method="POST" class="d-inline"
+      action="{{ url_for('servicios.cambiar_estado', solicitud_id=s.id) }}">
+    <input type="hidden" name="volver" value="{{ volver }}">
+    {% if s.estado == "pendiente" %}
+        <button type="submit" name="accion" value="aceptar"
+                class="btn btn-primary btn-sm">Aceptar</button>
+        <button type="submit" name="accion" value="rechazar"
+                class="btn btn-outline-danger btn-sm"
+                onclick="return confirm('¿Seguro que quieres rechazar esta solicitud?');">
+            Rechazar
+        </button>
+    {% elif s.estado == "aceptado" %}
+        <button type="submit" name="accion" value="en_camino"
+                class="btn btn-primary btn-sm">Voy en camino</button>
+    {% elif s.estado == "en_camino" %}
+        <button type="submit" name="accion" value="terminar"
+                class="btn btn-primary btn-sm">Marcar terminado</button>
+    {% endif %}
+</form>
+{% endmacro %}

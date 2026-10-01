@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "servicios/_acciones.html" import acciones %}
 {% block title %}Solicitud {{ solicitud.id }} — ServiFácil{% endblock %}
 
 {% block ancho %}contenedor-medio{% endblock %}
@@ -29,6 +30,12 @@
             {% endfor %}
         </tr>
     </table>
+{% endif %}
+
+{% if current_user.rol == "tecnico" and solicitud.estado in ("pendiente", "aceptado", "en_camino") %}
+    <div class="botones">
+        {{ acciones(solicitud, "detalle") }}
+    </div>
 {% endif %}
 
 <!-- DATOS DEL SERVICIO -->

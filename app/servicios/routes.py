@@ -15,6 +15,14 @@ servicios_bp = Blueprint("servicios", __name__)
 # Estados en los que el cliente y el técnico ya pueden ver el teléfono del otro
 ESTADOS_CON_CONTACTO = ("aceptado", "en_camino", "terminado")
 
+# Acciones del técnico: acción -> (estado que debe tener, estado nuevo, mensaje)
+ACCIONES = {
+    "aceptar": ("pendiente", "aceptado", "Aceptaste la solicitud."),
+    "rechazar": ("pendiente", "rechazado", "Rechazaste la solicitud."),
+    "en_camino": ("aceptado", "en_camino", "La solicitud quedó como «En camino»."),
+    "terminar": ("en_camino", "terminado", "Marcaste el servicio como terminado."),
+}
+
 
 def categorias_activas():
     return Categoria.query.filter_by(activa=True).order_by(Categoria.nombre).all()
@@ -154,6 +162,40 @@ def detalle(solicitud_id):
         flujo=FLUJO_ESTADOS, nombres=ESTADO_NOMBRES, paso_actual=paso_actual,
         con_contacto=solicitud.estado in ESTADOS_CON_CONTACTO
     )
+
+
+# =========================================================
+# ACEPTAR, RECHAZAR Y CAMBIAR ESTADO (TÉCNICO)
+# =========================================================
+
+@servicios_bp.route("/solicitud/<int:solicitud_id>/estado", methods=["POST"])
+@rol_requerido("tecnico")
+def cambiar_estado(solicitud_id):
+    solicitud = db.get_or_404(Solicitud, solicitud_id)
+    if solicitud.tecnico_id != current_user.tecnico.id:
+        flash("No tienes permiso para cambiar esa solicitud.", "warning")
+        return redirect(url_for("main.dashboard"))
+
+    accion = request.form.get("accion")
+    if accion not in ACCIONES:
+        flash("Acción no válida.", "danger")
+    else:
+        requerido, nuevo, mensaje = ACCIONES[accion]
+        # El estado solo avanza en orden: no se puede terminar algo pendiente
+        if solicitud.estado != requerido:
+            flash(
+                f"No se puede hacer eso: la solicitud está "
+                f"«{solicitud.estado_nombre}».", "warning"
+            )
+        else:
+            solicitud.estado = nuevo
+            solicitud.actualizada = datetime.utcnow()
+            db.session.commit()
+            flash(mensaje, "success")
+
+    if request.form.get("volver") == "detalle":
+        return redirect(url_for("servicios.detalle", solicitud_id=solicitud.id))
+    return redirect(url_for("main.dashboard"))
 
 
 # =========================================================

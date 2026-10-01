@@ -31,7 +31,23 @@ def dashboard():
             total_clientes=total_clientes,
         )
     if current_user.rol == "tecnico":
-        return render_template("main/dashboard_tecnico.html")
+        propias = Solicitud.query.filter_by(tecnico_id=current_user.tecnico.id)
+        nuevas = (
+            propias.filter_by(estado="pendiente")
+            .order_by(Solicitud.fecha_servicio).all()
+        )
+        en_curso = (
+            propias.filter(Solicitud.estado.in_(("aceptado", "en_camino")))
+            .order_by(Solicitud.fecha_servicio).all()
+        )
+        cerradas = (
+            propias.filter(Solicitud.estado.in_(("terminado", "rechazado")))
+            .order_by(Solicitud.actualizada.desc()).all()
+        )
+        return render_template(
+            "main/dashboard_tecnico.html", nuevas=nuevas, en_curso=en_curso,
+            cerradas=cerradas
+        )
 
     solicitudes = (
         Solicitud.query.filter_by(cliente_id=current_user.cliente.id)
