@@ -15,6 +15,37 @@ ROL_NOMBRES = {
     "administrador": "Administrador",
 }
 
+# Estados por los que pasa una solicitud de servicio
+ESTADO_NOMBRES = {
+    "pendiente": "Pendiente",
+    "aceptado": "Aceptado",
+    "rechazado": "Rechazado",
+    "en_camino": "En camino",
+    "terminado": "Terminado",
+}
+
+# Orden normal del servicio (el rechazo lo termina antes)
+FLUJO_ESTADOS = ("pendiente", "aceptado", "en_camino", "terminado")
+
+# Categorías de servicio con las que arranca la plataforma
+CATEGORIAS_INICIALES = [
+    ("Plomería", "Fugas, instalación de llaves, tinacos y drenaje"),
+    ("Electricidad", "Contactos, apagadores, cableado y lámparas"),
+    ("Limpieza", "Limpieza de casa, oficinas y después de obra"),
+    ("Jardinería", "Poda, corte de pasto y mantenimiento de jardines"),
+    ("Carpintería", "Reparación de puertas, muebles y closets"),
+    ("Pintura", "Pintura de interiores, exteriores y fachadas"),
+]
+
+# Relación N a N: qué categorías ofrece cada técnico
+tecnico_categoria = db.Table(
+    "tecnico_categoria",
+    db.Column("tecnico_id", db.Integer, db.ForeignKey("tecnicos.id"),
+              primary_key=True),
+    db.Column("categoria_id", db.Integer, db.ForeignKey("categorias.id"),
+              primary_key=True),
+)
+
 
 class Zona(db.Model):
     __tablename__ = "zonas"
@@ -88,6 +119,54 @@ class Tecnico(db.Model):
     descripcion = db.Column(db.String(200))
     zona_id = db.Column(db.Integer, db.ForeignKey("zonas.id"))
     zona = db.relationship("Zona")
+    categorias = db.relationship(
+        "Categoria", secondary=tecnico_categoria, backref="tecnicos",
+        order_by="Categoria.nombre"
+    )
+
+    @property
+    def categorias_texto(self):
+        return ", ".join(c.nombre for c in self.categorias)
+
+
+class Categoria(db.Model):
+    __tablename__ = "categorias"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(60), unique=True, nullable=False)
+    descripcion = db.Column(db.String(200))
+    activa = db.Column(db.Boolean, nullable=False, default=True)
+
+    def __str__(self):
+        return self.nombre
+
+
+class Solicitud(db.Model):
+    __tablename__ = "solicitudes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    cliente_id = db.Column(db.Integer, db.ForeignKey("clientes.id"), nullable=False)
+    tecnico_id = db.Column(db.Integer, db.ForeignKey("tecnicos.id"), nullable=False)
+    categoria_id = db.Column(db.Integer, db.ForeignKey("categorias.id"), nullable=False)
+    zona_id = db.Column(db.Integer, db.ForeignKey("zonas.id"))
+    direccion = db.Column(db.String(200), nullable=False)
+    fecha_servicio = db.Column(db.Date, nullable=False)
+    descripcion = db.Column(db.String(300), nullable=False)
+    estado = db.Column(db.String(20), nullable=False, default="pendiente")
+    creada = db.Column(db.DateTime, default=datetime.utcnow)
+    actualizada = db.Column(db.DateTime, default=datetime.utcnow)
+
+    cliente = db.relationship("Cliente", backref="solicitudes")
+    tecnico = db.relationship("Tecnico", backref="solicitudes")
+    categoria = db.relationship("Categoria")
+    zona = db.relationship("Zona")
+
+    @property
+    def estado_nombre(self):
+        return ESTADO_NOMBRES.get(self.estado, self.estado)
+
+    def __str__(self):
+        return f"Solicitud {self.id} ({self.estado})"
 
 
 @login_manager.user_loader
@@ -96,7 +175,7 @@ def load_user(user_id):
 
 
 def inicializar_datos():
-    """Crea las zonas de arranque y un usuario administrador si no existen."""
+    """Crea las zonas, las categorías y un usuario administrador si no existen."""
     if Zona.query.count() == 0:
         zonas = [
             Zona(nombre="Centro", ciudad="Durango"),
@@ -106,6 +185,13 @@ def inicializar_datos():
             Zona(nombre="Otra", ciudad="Durango"),
         ]
         db.session.add_all(zonas)
+        db.session.commit()
+
+    if Categoria.query.count() == 0:
+        db.session.add_all([
+            Categoria(nombre=nombre, descripcion=descripcion)
+            for nombre, descripcion in CATEGORIAS_INICIALES
+        ])
         db.session.commit()
 
     if Usuario.query.filter_by(correo="admin@servifacil.com").first() is None:

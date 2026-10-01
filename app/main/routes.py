@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required, current_user
 
-from app.models import Usuario, Zona
+from app.models import Categoria, Usuario, Zona
 
 main_bp = Blueprint("main", __name__)
 
@@ -11,7 +11,8 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
     zonas = Zona.query.filter(Zona.nombre != "Otra").order_by(Zona.nombre).all()
-    return render_template("index.html", zonas=zonas)
+    categorias = Categoria.query.filter_by(activa=True).order_by(Categoria.nombre).all()
+    return render_template("index.html", zonas=zonas, categorias=categorias)
 
 
 @main_bp.route("/dashboard")

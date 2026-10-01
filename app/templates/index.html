@@ -32,10 +32,9 @@
     <div class="col-md-6">
         <h2>Servicios</h2>
         <ul>
-            <li>Plomería</li>
-            <li>Electricidad</li>
-            <li>Limpieza</li>
-            <li>Jardinería</li>
+            {% for categoria in categorias %}
+                <li>{{ categoria.nombre }}</li>
+            {% endfor %}
         </ul>
     </div>
     <div class="col-md-6">
