@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Solicitud {{ solicitud.id }} — ServiFácil{% endblock %}
+
+{% block ancho %}contenedor-medio{% endblock %}
+
+{% block contenido %}
+<h1>Solicitud #{{ solicitud.id }}</h1>
+<p class="subtitulo">
+    Estado:
+    <span class="estado estado-{{ solicitud.estado }}">{{ solicitud.estado_nombre }}</span>
+</p>
+
+<!-- SEGUIMIENTO -->
+<h2>Seguimiento</h2>
+{% if solicitud.estado == "rechazado" %}
+    <p class="aviso">
+        El técnico no puede atender esta solicitud.
+        {% if current_user.rol == "cliente" %}
+            Puedes <a href="{{ url_for('servicios.buscar') }}">buscar otro técnico</a>.
+        {% endif %}
+    </p>
+{% else %}
+    <table class="tabla seguimiento">
+        <tr>
+            {% for estado in flujo %}
+                <td class="{% if loop.index0 < paso_actual %}hecho{% elif loop.index0 == paso_actual %}actual{% endif %}">
+                    {{ loop.index }}. {{ nombres[estado] }}
+                </td>
+            {% endfor %}
+        </tr>
+    </table>
+{% endif %}
+
+<!-- DATOS DEL SERVICIO -->
+<h2>Datos del servicio</h2>
+<table class="tabla tabla-datos">
+    <tr>
+        <th>Servicio</th>
+        <td>{{ solicitud.categoria.nombre }}</td>
+    </tr>
+    <tr>
+        <th>Fecha del servicio</th>
+        <td>{{ solicitud.fecha_servicio|fecha }}</td>
+    </tr>
+    <tr>
+        <th>Dirección</th>
+        <td>{{ solicitud.direccion }}</td>
+    </tr>
+    <tr>
+        <th>Zona</th>
+        <td>{{ solicitud.zona.nombre if solicitud.zona else "—" }}</td>
+    </tr>
+    <tr>
+        <th>Lo que se necesita</th>
+        <td>{{ solicitud.descripcion }}</td>
+    </tr>
+    <tr>
+        <th>Enviada el</th>
+        <td>{{ solicitud.creada|fecha_hora }}</td>
+    </tr>
+    <tr>
+        <th>Última actualización</th>
+        <td>{{ solicitud.actualizada|fecha_hora }}</td>
+    </tr>
+</table>
+
+<!-- CONTACTO -->
+<h2>Contacto</h2>
+<table class="tabla tabla-datos">
+    <tr>
+        <th>Cliente</th>
+        <td>
+            {{ solicitud.cliente.usuario.nombre }}
+            {% if con_contacto and solicitud.cliente.telefono %}
+                — Tel. {{ solicitud.cliente.telefono }}
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <th>Técnico</th>
+        <td>
+            {{ solicitud.tecnico.usuario.nombre }}
+            {% if con_contacto and solicitud.tecnico.telefono %}
+                — Tel. {{ solicitud.tecnico.telefono }}
+            {% endif %}
+        </td>
+    </tr>
+</table>
+{% if not con_contacto and solicitud.estado == "pendiente" %}
+    <p class="nota">Los teléfonos se muestran cuando el técnico acepta la solicitud.</p>
+{% endif %}
+
+<div class="botones">
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+        Regresar a mi panel
+    </a>
+</div>
+{% endblock %}

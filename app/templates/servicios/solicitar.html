@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Solicitar servicio — ServiFácil{% endblock %}
+
+{% block ancho %}contenedor-medio{% endblock %}
+
+{% block contenido %}
+<h1>Solicitar servicio</h1>
+<p class="subtitulo">Tu solicitud le llegará al técnico para que la acepte</p>
+
+<h2>Técnico</h2>
+<table class="tabla tabla-datos">
+    <tr>
+        <th>Nombre</th>
+        <td>{{ tecnico.usuario.nombre }}</td>
+    </tr>
+    <tr>
+        <th>Servicios</th>
+        <td>{{ tecnico.categorias_texto }}</td>
+    </tr>
+    <tr>
+        <th>Zona</th>
+        <td>{{ tecnico.zona or "—" }}</td>
+    </tr>
+    <tr>
+        <th>Descripción</th>
+        <td>{{ tecnico.descripcion or "—" }}</td>
+    </tr>
+</table>
+
+<form method="POST">
+    <fieldset>
+        <legend>Datos del servicio</legend>
+        <div class="row">
+            <div class="col-md-7 mb-3">
+                <label for="categoria_id" class="form-label">Servicio</label>
+                <select name="categoria_id" id="categoria_id" class="form-select" required>
+                    <option value="">Selecciona...</option>
+                    {% for c in tecnico.categorias %}
+                        <option value="{{ c.id }}"
+                            {% if datos.categoria_id == c.id|string %}selected{% endif %}>
+                            {{ c.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5 mb-3">
+                <label for="fecha_servicio" class="form-label">Fecha</label>
+                <input type="date" id="fecha_servicio" name="fecha_servicio"
+                       class="form-control" min="{{ hoy }}"
+                       value="{{ datos.fecha_servicio or '' }}" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="direccion" class="form-label">Dirección</label>
+            <input type="text" id="direccion" name="direccion" class="form-control"
+                   maxlength="200" placeholder="Calle, número y colonia"
+                   value="{{ datos.direccion or '' }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">¿Qué necesitas?</label>
+            <textarea id="descripcion" name="descripcion" class="form-control" rows="3"
+                      maxlength="300" required
+                      placeholder="Ej. Se sale el agua por debajo del lavabo del baño">{{ datos.descripcion or '' }}</textarea>
+        </div>
+    </fieldset>
+
+    <div class="botones">
+        <button type="submit" class="btn btn-primary">Enviar solicitud</button>
+        <a href="{{ url_for('servicios.buscar') }}" class="btn btn-outline-secondary">
+            Regresar
+        </a>
+    </div>
+</form>
+{% endblock %}

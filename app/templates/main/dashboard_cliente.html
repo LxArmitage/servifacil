@@ -6,6 +6,48 @@
 <h1>Mi panel</h1>
 <p class="subtitulo">Cliente: {{ current_user.nombre }}</p>
 
+<div class="botones">
+    <a href="{{ url_for('servicios.buscar') }}" class="btn btn-primary">
+        Pedir un servicio
+    </a>
+</div>
+
+<h2>Mis solicitudes</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Servicio</th>
+                <th>Técnico</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in solicitudes %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.fecha_servicio|fecha }}</td>
+                <td>{{ s.categoria.nombre }}</td>
+                <td>{{ s.tecnico.usuario.nombre }}</td>
+                <td><span class="estado estado-{{ s.estado }}">{{ s.estado_nombre }}</span></td>
+                <td>
+                    <a href="{{ url_for('servicios.detalle', solicitud_id=s.id) }}">Ver</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="vacio">
+                    Todavía no tienes solicitudes de servicio.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <h2>Mis datos</h2>
 <table class="tabla tabla-datos">
     <tr>
@@ -29,25 +71,4 @@
         <td>{{ current_user.creado.strftime("%d/%m/%Y") }}</td>
     </tr>
 </table>
-
-<h2>Mis solicitudes</h2>
-<div class="tabla-contenedor">
-    <table class="tabla">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Servicio</th>
-                <th>Técnico</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td colspan="4" class="vacio">
-                    Todavía no tienes solicitudes de servicio.
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
 {% endblock %}

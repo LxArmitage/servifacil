@@ -18,6 +18,11 @@ def create_app(config_class=Config):
     db.init_app(app)
     login_manager.init_app(app)
 
+    # Filtros de Jinja para mostrar fechas en formato dd/mm/aaaa
+    from app.fechas import fecha, fecha_hora
+    app.add_template_filter(fecha, "fecha")
+    app.add_template_filter(fecha_hora, "fecha_hora")
+
     # Blueprints
     from app.auth.routes import auth_bp
     from app.main.routes import main_bp

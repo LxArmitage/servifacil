@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Buscar técnico — ServiFácil{% endblock %}
+
+{% block contenido %}
+<h1>Buscar técnico</h1>
+<p class="subtitulo">Elige el servicio que necesitas y tu zona</p>
+
+<form method="GET">
+    <fieldset>
+        <legend>Filtros</legend>
+        <div class="row">
+            <div class="col-md-5 mb-3">
+                <label for="categoria_id" class="form-label">Servicio</label>
+                <select name="categoria_id" id="categoria_id" class="form-select">
+                    <option value="">Todos los servicios</option>
+                    {% for c in categorias %}
+                        <option value="{{ c.id }}"
+                            {% if c.id == categoria_id %}selected{% endif %}>
+                            {{ c.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5 mb-3">
+                <label for="zona_id" class="form-label">Zona</label>
+                <select name="zona_id" id="zona_id" class="form-select">
+                    <option value="">Todas las zonas</option>
+                    {% for z in zonas %}
+                        <option value="{{ z.id }}"
+                            {% if z.id == zona_id %}selected{% endif %}>
+                            {{ z.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 mb-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            </div>
+        </div>
+    </fieldset>
+</form>
+
+<h2>Técnicos encontrados ({{ tecnicos|length }})</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Servicios</th>
+                <th>Zona</th>
+                <th>Descripción</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tecnicos %}
+            <tr>
+                <td>{{ t.usuario.nombre }}</td>
+                <td>{{ t.categorias_texto }}</td>
+                <td>{{ t.zona.nombre if t.zona else "—" }}</td>
+                <td>{{ t.descripcion or "" }}</td>
+                <td>
+                    <a class="btn btn-primary btn-sm"
+                       href="{{ url_for('servicios.solicitar', tecnico_id=t.id, categoria_id=categoria_id or '') }}">
+                        Solicitar
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="vacio">
+                    No encontramos técnicos con esos filtros. Prueba con otra zona
+                    o con todos los servicios.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

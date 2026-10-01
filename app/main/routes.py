@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for
 from flask_login import login_required, current_user
 
-from app.models import Categoria, Usuario, Zona
+from app.models import Categoria, Solicitud, Usuario, Zona
 
 main_bp = Blueprint("main", __name__)
 
@@ -32,4 +32,9 @@ def dashboard():
         )
     if current_user.rol == "tecnico":
         return render_template("main/dashboard_tecnico.html")
-    return render_template("main/dashboard_cliente.html")
+
+    solicitudes = (
+        Solicitud.query.filter_by(cliente_id=current_user.cliente.id)
+        .order_by(Solicitud.creada.desc()).all()
+    )
+    return render_template("main/dashboard_cliente.html", solicitudes=solicitudes)
