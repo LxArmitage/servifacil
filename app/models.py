@@ -18,9 +18,9 @@ ROL_NOMBRES = {
 ESTADO_NOMBRES = {
     "pendiente": "Pendiente",
     "aceptado": "Aceptado",
-    "rechazado": "Rechazado",
     "en_camino": "En camino",
     "terminado": "Terminado",
+    "rechazado": "Rechazado",
 }
 
 # Orden normal del servicio (el rechazo lo termina antes)

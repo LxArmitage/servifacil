@@ -48,7 +48,8 @@
                 <th>Nombre</th>
                 <th>Servicios</th>
                 <th>Zona</th>
-                <th>Descripción</th>
+                <!-- En celular se oculta la descripción para que quepa el botón -->
+                <th class="d-none d-md-table-cell">Descripción</th>
                 <th></th>
             </tr>
         </thead>
@@ -58,7 +59,7 @@
                 <td>{{ t.usuario.nombre }}</td>
                 <td>{{ t.categorias_texto }}</td>
                 <td>{{ t.zona.nombre if t.zona else "—" }}</td>
-                <td>{{ t.descripcion or "" }}</td>
+                <td class="d-none d-md-table-cell">{{ t.descripcion or "" }}</td>
                 <td>
                     <a class="btn btn-primary btn-sm"
                        href="{{ url_for('servicios.solicitar', tecnico_id=t.id, categoria_id=categoria_id or '') }}">

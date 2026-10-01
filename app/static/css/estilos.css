@@ -140,6 +140,12 @@ legend {
 }
 
 
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: #2c3e50;
+}
+
+
 /* =========================================
    BOTONES
    ========================================= */
@@ -316,6 +322,17 @@ footer {
 
     .contenedor {
         padding: 20px 15px;
+    }
+
+
+    .tabla {
+        font-size: 0.9rem;
+    }
+
+
+    .tabla th,
+    .tabla td {
+        padding: 8px 6px;
     }
 
 }
