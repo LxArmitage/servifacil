@@ -1,6 +1,6 @@
-from flask import Flask
+from flask import Flask, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 
 from config import Config
 
@@ -30,6 +30,15 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(servicios_bp)
+
+    # Archivo más grande que MAX_CONTENT_LENGTH (por ejemplo, una foto pesada)
+    @app.errorhandler(413)
+    def archivo_muy_grande(error):
+        flash("El archivo es demasiado grande. La foto no puede pesar más de 2 MB.",
+              "danger")
+        if current_user.is_authenticated and current_user.rol == "tecnico":
+            return redirect(url_for("servicios.perfil_tecnico"))
+        return redirect(url_for("main.dashboard"))
 
     # Crear tablas y datos iniciales (zonas y administrador)
     with app.app_context():

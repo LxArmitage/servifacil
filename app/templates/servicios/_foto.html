@@ -1,0 +1,11 @@
+{# Foto del técnico; si no tiene, se muestran sus iniciales.
+   tam: "chica" (listas) o "grande" (perfil). El parámetro v evita que el
+   navegador muestre una foto vieja después de cambiarla. #}
+{% macro foto(tecnico, tam="chica") %}
+{%- if tecnico.foto -%}
+<img class="foto foto-{{ tam }}" alt="Foto de {{ tecnico.usuario.nombre }}"
+     src="{{ url_for('servicios.foto_tecnico', tecnico_id=tecnico.id, v=tecnico.foto.actualizada.timestamp()|int) }}">
+{%- else -%}
+<span class="foto foto-{{ tam }} foto-sin" title="Sin foto">{{ tecnico.iniciales }}</span>
+{%- endif -%}
+{% endmacro %}

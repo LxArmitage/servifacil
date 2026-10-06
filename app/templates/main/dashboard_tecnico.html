@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "servicios/_acciones.html" import acciones %}
 {% from "servicios/_estrellas.html" import estrellas, promedio %}
+{% from "servicios/_foto.html" import foto %}
 {% block title %}Mi panel — ServiFácil{% endblock %}
 
 {% block contenido %}
@@ -155,7 +156,7 @@
 <table class="tabla tabla-datos">
     <tr>
         <th>Nombre</th>
-        <td>{{ current_user.nombre }}</td>
+        <td>{{ foto(perfil) }} {{ current_user.nombre }}</td>
     </tr>
     <tr>
         <th>Correo</th>

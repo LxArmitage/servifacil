@@ -14,3 +14,6 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = _db_url or "sqlite:///servifacil.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Tamaño máximo de una petición (la foto del técnico es de hasta 2 MB)
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024

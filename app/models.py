@@ -122,6 +122,14 @@ class Tecnico(db.Model):
         "Categoria", secondary=tecnico_categoria, backref="tecnicos",
         order_by="Categoria.nombre"
     )
+    foto = db.relationship(
+        "FotoTecnico", uselist=False, cascade="all, delete-orphan"
+    )
+
+    @property
+    def iniciales(self):
+        partes = self.usuario.nombre.split()
+        return "".join(p[0] for p in partes[:2]).upper()
 
     @property
     def categorias_texto(self):
@@ -146,6 +154,18 @@ class Tecnico(db.Model):
             .filter(Solicitud.tecnico_id == self.id)
             .order_by(Calificacion.creada.desc()).all()
         )
+
+
+class FotoTecnico(db.Model):
+    """Foto del técnico. Se guarda en la base de datos porque en Render los
+    archivos subidos a la carpeta del servidor se borran al reiniciar."""
+    __tablename__ = "fotos_tecnicos"
+
+    tecnico_id = db.Column(db.Integer, db.ForeignKey("tecnicos.id"), primary_key=True)
+    # deferred: la imagen solo se carga cuando de verdad se va a enviar
+    datos = db.deferred(db.Column(db.LargeBinary, nullable=False))
+    tipo = db.Column(db.String(30), nullable=False)
+    actualizada = db.Column(db.DateTime, default=ahora_utc)
 
 
 class Categoria(db.Model):

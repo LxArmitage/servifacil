@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "servicios/_estrellas.html" import promedio %}
+{% from "servicios/_foto.html" import foto %}
 {% block title %}Solicitar servicio — ServiFácil{% endblock %}
 
 {% block ancho %}contenedor-medio{% endblock %}
@@ -12,7 +13,7 @@
 <table class="tabla tabla-datos">
     <tr>
         <th>Nombre</th>
-        <td>{{ tecnico.usuario.nombre }}</td>
+        <td>{{ foto(tecnico) }} {{ tecnico.usuario.nombre }}</td>
     </tr>
     <tr>
         <th>Servicios</th>

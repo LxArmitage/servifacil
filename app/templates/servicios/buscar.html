@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "servicios/_estrellas.html" import promedio %}
+{% from "servicios/_foto.html" import foto %}
 {% block title %}Buscar técnico — ServiFácil{% endblock %}
 
 {% block contenido %}
@@ -59,7 +60,7 @@
         <tbody>
             {% for t in tecnicos %}
             <tr>
-                <td>{{ t.usuario.nombre }}</td>
+                <td class="text-nowrap">{{ foto(t) }} {{ t.usuario.nombre }}</td>
                 <td>{{ t.categorias_texto }}</td>
                 <td>{{ t.zona.nombre if t.zona else "—" }}</td>
                 <td>{{ promedio(t) }}</td>

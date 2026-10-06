@@ -1,13 +1,15 @@
 from datetime import datetime
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import (
+    Blueprint, render_template, redirect, url_for, request, flash, make_response,
+)
 from flask_login import current_user, login_required
 
 from app import db
 from app.decoradores import rol_requerido
 from app.fechas import ahora_utc, hoy_durango
 from app.models import (
-    Calificacion, Categoria, Solicitud, Tecnico, Usuario, Zona,
+    Calificacion, Categoria, FotoTecnico, Solicitud, Tecnico, Usuario, Zona,
     ESTADO_NOMBRES, FLUJO_ESTADOS,
 )
 
@@ -23,6 +25,21 @@ ACCIONES = {
     "en_camino": ("aceptado", "en_camino", "La solicitud quedó como «En camino»."),
     "terminar": ("en_camino", "terminado", "Marcaste el servicio como terminado."),
 }
+
+
+# Foto del técnico: tamaño máximo y formatos aceptados
+FOTO_MAX_BYTES = 2 * 1024 * 1024
+
+
+def tipo_de_imagen(datos):
+    """Revisa los primeros bytes del archivo (no confía en la extensión)."""
+    if datos.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if datos.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if datos[:4] == b"RIFF" and datos[8:12] == b"WEBP":
+        return "image/webp"
+    return None
 
 
 def categorias_activas():
@@ -218,12 +235,23 @@ def perfil_tecnico():
         zona_id = request.form.get("zona_id") or None
         descripcion = (request.form.get("descripcion") or "").strip()
         ids = request.form.getlist("categorias")
+        archivo = request.files.get("foto")
+        quitar_foto = request.form.get("quitar_foto") == "1"
 
         errores = []
         if not nombre:
             errores.append("El nombre es obligatorio.")
         if not ids:
             errores.append("Selecciona al menos un servicio que ofreces.")
+
+        datos_foto, tipo_foto = None, None
+        if archivo and archivo.filename:
+            datos_foto = archivo.read()
+            tipo_foto = tipo_de_imagen(datos_foto)
+            if len(datos_foto) > FOTO_MAX_BYTES:
+                errores.append("La foto no puede pesar más de 2 MB.")
+            elif tipo_foto is None:
+                errores.append("La foto debe ser una imagen JPG, PNG o WEBP.")
 
         if errores:
             for e in errores:
@@ -238,6 +266,15 @@ def perfil_tecnico():
         tecnico.zona_id = zona_id
         tecnico.descripcion = descripcion
         tecnico.categorias = Categoria.query.filter(Categoria.id.in_(ids)).all()
+        if datos_foto:
+            if tecnico.foto is None:
+                tecnico.foto = FotoTecnico(datos=datos_foto, tipo=tipo_foto)
+            else:
+                tecnico.foto.datos = datos_foto
+                tecnico.foto.tipo = tipo_foto
+                tecnico.foto.actualizada = ahora_utc()
+        elif quitar_foto:
+            tecnico.foto = None
         db.session.commit()
         flash("Tu perfil se guardó correctamente.", "success")
         return redirect(url_for("main.dashboard"))
@@ -307,3 +344,18 @@ def historial():
         total_rechazadas=len(solicitudes) - len(terminadas),
         total_calificadas=sum(1 for s in terminadas if s.calificacion),
     )
+
+
+# =========================================================
+# FOTO DEL TÉCNICO
+# =========================================================
+
+@servicios_bp.route("/tecnico/<int:tecnico_id>/foto")
+@login_required
+def foto_tecnico(tecnico_id):
+    foto = db.get_or_404(FotoTecnico, tecnico_id)
+    respuesta = make_response(foto.datos)
+    respuesta.headers["Content-Type"] = foto.tipo
+    respuesta.headers["X-Content-Type-Options"] = "nosniff"
+    respuesta.headers["Cache-Control"] = "private, max-age=3600"
+    return respuesta
