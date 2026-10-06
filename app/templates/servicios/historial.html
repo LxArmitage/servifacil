@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "servicios/_estrellas.html" import estrellas %}
+{% block title %}Mi historial — ServiFácil{% endblock %}
+
+{% block contenido %}
+<h1>Mi historial</h1>
+<p class="subtitulo">Servicios terminados y rechazados</p>
+
+<h2>Resumen</h2>
+<table class="tabla tabla-resumen">
+    <tr>
+        <th>Servicios terminados</th>
+        <td>{{ total_terminadas }}</td>
+    </tr>
+    <tr>
+        <th>Servicios calificados</th>
+        <td>{{ total_calificadas }}</td>
+    </tr>
+    <tr>
+        <th>Solicitudes rechazadas</th>
+        <td>{{ total_rechazadas }}</td>
+    </tr>
+</table>
+
+<h2>Servicios</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Servicio</th>
+                <th>Técnico</th>
+                <th>Estado</th>
+                <th>Mi calificación</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in solicitudes %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.fecha_servicio|fecha }}</td>
+                <td>{{ s.categoria.nombre }}</td>
+                <td>{{ s.tecnico.usuario.nombre }}</td>
+                <td><span class="estado estado-{{ s.estado }}">{{ s.estado_nombre }}</span></td>
+                <td>
+                    {% if s.calificacion %}
+                        {{ estrellas(s.calificacion.estrellas) }}
+                    {% elif s.puede_calificarse %}
+                        <a href="{{ url_for('servicios.detalle', solicitud_id=s.id) }}#calificar">Calificar</a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('servicios.detalle', solicitud_id=s.id) }}">Ver</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="vacio">
+                    Todavía no tienes servicios terminados.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="botones">
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+        Regresar a mi panel
+    </a>
+</div>
+{% endblock %}

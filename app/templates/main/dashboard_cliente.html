@@ -12,7 +12,7 @@
     </a>
 </div>
 
-<h2>Mis solicitudes</h2>
+<h2>Solicitudes en proceso ({{ en_proceso|length }})</h2>
 <div class="tabla-contenedor">
     <table class="tabla">
         <thead>
@@ -26,7 +26,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for s in solicitudes %}
+            {% for s in en_proceso %}
             <tr>
                 <td>{{ s.id }}</td>
                 <td>{{ s.fecha_servicio|fecha }}</td>
@@ -40,13 +40,53 @@
             {% else %}
             <tr>
                 <td colspan="6" class="vacio">
-                    Todavía no tienes solicitudes de servicio.
+                    No tienes solicitudes en proceso.
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<h2>Servicios por calificar ({{ por_calificar|length }})</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Servicio</th>
+                <th>Técnico</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in por_calificar %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.fecha_servicio|fecha }}</td>
+                <td>{{ s.categoria.nombre }}</td>
+                <td>{{ s.tecnico.usuario.nombre }}</td>
+                <td>
+                    <a class="btn btn-primary btn-sm"
+                       href="{{ url_for('servicios.detalle', solicitud_id=s.id) }}#calificar">
+                        Calificar
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="vacio">
+                    No tienes servicios pendientes de calificar.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p>
+    <a href="{{ url_for('servicios.historial') }}">Ver mi historial completo</a>
+</p>
 
 <h2>Mis datos</h2>
 <table class="tabla tabla-datos">

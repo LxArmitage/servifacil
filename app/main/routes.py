@@ -60,8 +60,17 @@ def dashboard():
             cerradas=cerradas
         )
 
-    solicitudes = (
-        Solicitud.query.filter_by(cliente_id=current_user.cliente.id)
-        .order_by(Solicitud.creada.desc()).all()
+    propias = Solicitud.query.filter_by(cliente_id=current_user.cliente.id)
+    en_proceso = (
+        propias.filter(Solicitud.estado.in_(("pendiente", "aceptado", "en_camino")))
+        .order_by(Solicitud.fecha_servicio).all()
     )
-    return render_template("main/dashboard_cliente.html", solicitudes=solicitudes)
+    terminadas = (
+        propias.filter_by(estado="terminado")
+        .order_by(Solicitud.fecha_servicio.desc()).all()
+    )
+    por_calificar = [s for s in terminadas if s.calificacion is None]
+    return render_template(
+        "main/dashboard_cliente.html", en_proceso=en_proceso,
+        por_calificar=por_calificar
+    )

@@ -32,6 +32,11 @@
                                     Pedir servicio
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('servicios.historial') }}">
+                                    Historial
+                                </a>
+                            </li>
                         {% endif %}
                         {% if current_user.rol == "tecnico" %}
                             <li class="nav-item">

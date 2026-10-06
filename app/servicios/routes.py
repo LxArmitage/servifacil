@@ -286,3 +286,24 @@ def calificar(solicitud_id):
         flash("Gracias, tu calificación se guardó.", "success")
 
     return redirect(url_for("servicios.detalle", solicitud_id=solicitud.id))
+
+
+# =========================================================
+# HISTORIAL DE SERVICIOS (CLIENTE)
+# =========================================================
+
+@servicios_bp.route("/historial")
+@rol_requerido("cliente")
+def historial():
+    solicitudes = (
+        Solicitud.query.filter_by(cliente_id=current_user.cliente.id)
+        .filter(Solicitud.estado.in_(("terminado", "rechazado")))
+        .order_by(Solicitud.fecha_servicio.desc(), Solicitud.id.desc()).all()
+    )
+    terminadas = [s for s in solicitudes if s.estado == "terminado"]
+    return render_template(
+        "servicios/historial.html", solicitudes=solicitudes,
+        total_terminadas=len(terminadas),
+        total_rechazadas=len(solicitudes) - len(terminadas),
+        total_calificadas=sum(1 for s in terminadas if s.calificacion),
+    )
