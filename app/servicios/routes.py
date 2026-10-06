@@ -7,7 +7,8 @@ from app import db
 from app.decoradores import rol_requerido
 from app.fechas import ahora_utc, hoy_durango
 from app.models import (
-    Categoria, Solicitud, Tecnico, Usuario, Zona, ESTADO_NOMBRES, FLUJO_ESTADOS,
+    Calificacion, Categoria, Solicitud, Tecnico, Usuario, Zona,
+    ESTADO_NOMBRES, FLUJO_ESTADOS,
 )
 
 servicios_bp = Blueprint("servicios", __name__)
@@ -250,3 +251,36 @@ def perfil_tecnico():
         "servicios/perfil_tecnico.html", zonas=zonas, categorias=categorias,
         datos=datos, seleccionadas=seleccionadas
     )
+
+
+# =========================================================
+# CALIFICAR UN SERVICIO TERMINADO (CLIENTE)
+# =========================================================
+
+@servicios_bp.route("/solicitud/<int:solicitud_id>/calificar", methods=["POST"])
+@rol_requerido("cliente")
+def calificar(solicitud_id):
+    solicitud = db.get_or_404(Solicitud, solicitud_id)
+    if solicitud.cliente_id != current_user.cliente.id:
+        flash("No tienes permiso para calificar esa solicitud.", "warning")
+        return redirect(url_for("main.dashboard"))
+
+    estrellas = request.form.get("estrellas", type=int)
+    comentario = (request.form.get("comentario") or "").strip()
+
+    if solicitud.estado != "terminado":
+        flash("Solo puedes calificar un servicio terminado.", "warning")
+    elif solicitud.calificacion is not None:
+        flash("Ya calificaste este servicio.", "warning")
+    elif estrellas not in (1, 2, 3, 4, 5):
+        flash("Elige de 1 a 5 estrellas.", "danger")
+    elif len(comentario) > 300:
+        flash("El comentario no puede pasar de 300 caracteres.", "danger")
+    else:
+        db.session.add(Calificacion(
+            solicitud=solicitud, estrellas=estrellas, comentario=comentario
+        ))
+        db.session.commit()
+        flash("Gracias, tu calificación se guardó.", "success")
+
+    return redirect(url_for("servicios.detalle", solicitud_id=solicitud.id))

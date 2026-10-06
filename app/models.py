@@ -127,6 +127,26 @@ class Tecnico(db.Model):
     def categorias_texto(self):
         return ", ".join(c.nombre for c in self.categorias)
 
+    @property
+    def calificacion_resumen(self):
+        """(promedio redondeado a 1 decimal o None, número de calificaciones)."""
+        promedio, total = (
+            db.session.query(db.func.avg(Calificacion.estrellas),
+                             db.func.count(Calificacion.id))
+            .join(Solicitud)
+            .filter(Solicitud.tecnico_id == self.id)
+            .one()
+        )
+        return (round(promedio, 1) if promedio else None), total
+
+    @property
+    def calificaciones(self):
+        return (
+            Calificacion.query.join(Solicitud)
+            .filter(Solicitud.tecnico_id == self.id)
+            .order_by(Calificacion.creada.desc()).all()
+        )
+
 
 class Categoria(db.Model):
     __tablename__ = "categorias"
@@ -164,8 +184,28 @@ class Solicitud(db.Model):
     def estado_nombre(self):
         return ESTADO_NOMBRES.get(self.estado, self.estado)
 
+    @property
+    def puede_calificarse(self):
+        return self.estado == "terminado" and self.calificacion is None
+
     def __str__(self):
         return f"Solicitud {self.id} ({self.estado})"
+
+
+class Calificacion(db.Model):
+    __tablename__ = "calificaciones"
+
+    id = db.Column(db.Integer, primary_key=True)
+    # Cada solicitud terminada se califica una sola vez
+    solicitud_id = db.Column(db.Integer, db.ForeignKey("solicitudes.id"),
+                             unique=True, nullable=False)
+    estrellas = db.Column(db.Integer, nullable=False)
+    comentario = db.Column(db.String(300))
+    creada = db.Column(db.DateTime, default=ahora_utc)
+
+    solicitud = db.relationship(
+        "Solicitud", backref=db.backref("calificacion", uselist=False)
+    )
 
 
 @login_manager.user_loader

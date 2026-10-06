@@ -282,6 +282,20 @@ input[type="radio"] {
 }
 
 
+/* Calificaciones */
+
+.estrellas {
+    color: #e67e22;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+
+.estrellas .vacia {
+    color: #cccccc;
+}
+
+
 .aviso {
     padding: 10px 12px;
     background-color: #f8f1f1;

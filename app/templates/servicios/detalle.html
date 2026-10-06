@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "servicios/_acciones.html" import acciones %}
+{% from "servicios/_estrellas.html" import estrellas %}
 {% block title %}Solicitud {{ solicitud.id }} — ServiFácil{% endblock %}
 
 {% block ancho %}contenedor-medio{% endblock %}
@@ -36,6 +37,57 @@
     <div class="botones">
         {{ acciones(solicitud, "detalle") }}
     </div>
+{% endif %}
+
+<!-- CALIFICACIÓN (solo servicios terminados) -->
+{% if solicitud.estado == "terminado" %}
+    <h2 id="calificar">Calificación</h2>
+    {% set cal = solicitud.calificacion %}
+    {% if cal %}
+        <table class="tabla tabla-datos">
+            <tr>
+                <th>Estrellas</th>
+                <td>{{ estrellas(cal.estrellas) }} {{ cal.estrellas }} de 5</td>
+            </tr>
+            <tr>
+                <th>Comentario</th>
+                <td>{{ cal.comentario or "Sin comentario" }}</td>
+            </tr>
+            <tr>
+                <th>Fecha</th>
+                <td>{{ cal.creada|fecha_hora }}</td>
+            </tr>
+        </table>
+    {% elif current_user.rol == "cliente" %}
+        <form method="POST"
+              action="{{ url_for('servicios.calificar', solicitud_id=solicitud.id) }}">
+            <fieldset>
+                <legend>¿Cómo te fue con el servicio?</legend>
+                <div class="mb-3">
+                    <label class="form-label d-block">Estrellas</label>
+                    <div class="opciones">
+                        {% for n, texto in [(5, "Excelente"), (4, "Bueno"), (3, "Regular"), (2, "Malo"), (1, "Muy malo")] %}
+                            <label class="opcion">
+                                <input type="radio" name="estrellas" value="{{ n }}" required>
+                                {{ estrellas(n) }} {{ texto }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="comentario" class="form-label">Comentario (opcional)</label>
+                    <textarea id="comentario" name="comentario" class="form-control" rows="3"
+                              maxlength="300"
+                              placeholder="Ej. Llegó a tiempo y dejó todo limpio"></textarea>
+                </div>
+            </fieldset>
+            <div class="botones">
+                <button type="submit" class="btn btn-primary">Enviar calificación</button>
+            </div>
+        </form>
+    {% else %}
+        <p class="nota">El cliente todavía no califica este servicio.</p>
+    {% endif %}
 {% endif %}
 
 <!-- DATOS DEL SERVICIO -->

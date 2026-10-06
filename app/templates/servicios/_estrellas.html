@@ -1,0 +1,18 @@
+{# Estrellas llenas y vacías para una calificación de 1 a 5 #}
+{% macro estrellas(valor) %}
+{%- set llenas = (valor or 0)|round|int -%}
+<span class="estrellas" title="{{ valor }} de 5">
+    {{- "★" * llenas -}}<span class="vacia">{{ "★" * (5 - llenas) }}</span>
+</span>
+{%- endmacro %}
+
+{# Promedio de un técnico: "4.5 ★★★★★ (2)" o "Sin calificaciones" #}
+{% macro promedio(tecnico) %}
+{%- set prom, total = tecnico.calificacion_resumen -%}
+{% if total %}
+    {{ "%.1f"|format(prom) }} {{ estrellas(prom) }}
+    <span class="nota">({{ total }})</span>
+{% else %}
+    <span class="nota">Sin calificaciones</span>
+{% endif %}
+{%- endmacro %}
