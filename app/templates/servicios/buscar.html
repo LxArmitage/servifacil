@@ -49,10 +49,10 @@
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Servicios</th>
-                <th>Zona</th>
+                <!-- En celular se ocultan columnas para que quepa el botón -->
+                <th class="d-none d-md-table-cell">Servicios</th>
+                <th class="d-none d-md-table-cell">Zona</th>
                 <th>Calificación</th>
-                <!-- En celular se oculta la descripción para que quepa el botón -->
                 <th class="d-none d-md-table-cell">Descripción</th>
                 <th></th>
             </tr>
@@ -60,9 +60,12 @@
         <tbody>
             {% for t in tecnicos %}
             <tr>
-                <td class="text-nowrap">{{ foto(t) }} {{ t.usuario.nombre }}</td>
-                <td>{{ t.categorias_texto }}</td>
-                <td>{{ t.zona.nombre if t.zona else "—" }}</td>
+                <td>
+                    <span class="text-nowrap">{{ foto(t) }} {{ t.usuario.nombre }}</span>
+                    <div class="nota d-md-none">{{ t.categorias_texto }}</div>
+                </td>
+                <td class="d-none d-md-table-cell">{{ t.categorias_texto }}</td>
+                <td class="d-none d-md-table-cell">{{ t.zona.nombre if t.zona else "—" }}</td>
                 <td>{{ promedio(t) }}</td>
                 <td class="d-none d-md-table-cell">{{ t.descripcion or "" }}</td>
                 <td>
