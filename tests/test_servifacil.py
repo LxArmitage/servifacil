@@ -6,13 +6,14 @@ Ejecutar desde la carpeta del proyecto:
 Cada prueba usa una base de datos SQLite en memoria, así que no toca
 instance/servifacil.db.
 """
+import io
 import unittest
 from datetime import timedelta
 
 from config import Config
 from app import create_app, db
 from app.fechas import hoy_durango
-from app.models import Solicitud, Tecnico
+from app.models import Calificacion, FotoTecnico, Solicitud, Tecnico
 
 PASSWORD = "secreto1"
 PLOMERIA, ELECTRICIDAD = "1", "2"
@@ -204,6 +205,129 @@ class PruebasSolicitudes(PruebaBase):
         self.assertNotIn("6180000002", self.cliente.get("/solicitud/1").get_data(as_text=True))
         self.plomero.post("/solicitud/1/estado", data=dict(accion="aceptar"))
         self.assertIn("6180000002", self.cliente.get("/solicitud/1").get_data(as_text=True))
+
+
+# =========================================================
+# SPRINT 3: CALIFICACIONES, PROMEDIO E HISTORIAL
+# =========================================================
+
+class PruebasCalificaciones(PruebaBase):
+
+    def setUp(self):
+        super().setUp()
+        self.plomero = self.registrar(
+            "tecnico", "juan@ejemplo.com", categorias=[PLOMERIA])
+        self.cliente = self.registrar("cliente", "maria@ejemplo.com")
+        self.solicitar(self.cliente)
+
+    def terminar(self, solicitud_id=1, tecnico=None):
+        for accion in ("aceptar", "en_camino", "terminar"):
+            (tecnico or self.plomero).post(
+                f"/solicitud/{solicitud_id}/estado", data=dict(accion=accion))
+
+    def calificar(self, cliente=None, estrellas="5", comentario="Muy bien"):
+        return (cliente or self.cliente).post(
+            "/solicitud/1/calificar",
+            data=dict(estrellas=estrellas, comentario=comentario))
+
+    def total_calificaciones(self):
+        with self.app.app_context():
+            return Calificacion.query.count()
+
+    def test_no_se_califica_un_servicio_sin_terminar(self):
+        self.calificar()
+        self.assertEqual(self.total_calificaciones(), 0)
+
+    def test_cliente_califica_servicio_terminado(self):
+        self.terminar()
+        self.calificar(estrellas="4")
+        with self.app.app_context():
+            self.assertEqual(Tecnico.query.first().calificacion_resumen, (4.0, 1))
+
+    def test_no_se_califica_dos_veces(self):
+        self.terminar()
+        self.calificar(estrellas="5")
+        self.calificar(estrellas="1")
+        self.assertEqual(self.total_calificaciones(), 1)
+
+    def test_estrellas_fuera_de_rango(self):
+        self.terminar()
+        self.calificar(estrellas="6")
+        self.assertEqual(self.total_calificaciones(), 0)
+
+    def test_otro_cliente_no_puede_calificar(self):
+        self.terminar()
+        otro = self.registrar("cliente", "pepe@ejemplo.com")
+        self.calificar(cliente=otro)
+        self.assertEqual(self.total_calificaciones(), 0)
+
+    def test_busqueda_ordena_por_calificacion(self):
+        otro_plomero = self.registrar(
+            "tecnico", "beto@ejemplo.com", categorias=[PLOMERIA])
+        self.solicitar(self.cliente, tecnico_id=2)
+        self.terminar(solicitud_id=2, tecnico=otro_plomero)
+        self.cliente.post("/solicitud/2/calificar", data=dict(estrellas="5"))
+        html = self.cliente.get(f"/buscar?categoria_id={PLOMERIA}").get_data(as_text=True)
+        # Solo la tabla de resultados (arriba puede haber avisos con los nombres)
+        tabla = html[html.index("<tbody>"):]
+        # Beto tiene calificación y Juan no: Beto sale primero
+        self.assertLess(tabla.index("Beto"), tabla.index("Juan"))
+
+    def test_historial_muestra_terminados_y_rechazados(self):
+        self.terminar()
+        self.solicitar(self.cliente)
+        self.plomero.post("/solicitud/2/estado", data=dict(accion="rechazar"))
+        html = self.cliente.get("/historial").get_data(as_text=True)
+        self.assertIn("estado-terminado", html)
+        self.assertIn("estado-rechazado", html)
+
+
+# =========================================================
+# SPRINT 3: FOTO DEL TÉCNICO
+# =========================================================
+
+JPG_PRUEBA = b"\xff\xd8\xff\xe0" + b"0" * 100
+
+
+class PruebasFotoTecnico(PruebaBase):
+
+    def setUp(self):
+        super().setUp()
+        self.tecnico = self.registrar(
+            "tecnico", "juan@ejemplo.com", categorias=[PLOMERIA])
+        self.datos = dict(nombre="Juan", telefono="", zona_id=CENTRO,
+                          descripcion="", categorias=[PLOMERIA])
+
+    def subir(self, contenido, nombre="foto.jpg"):
+        return self.tecnico.post(
+            "/perfil", content_type="multipart/form-data",
+            data={**self.datos, "foto": (io.BytesIO(contenido), nombre)})
+
+    def total_fotos(self):
+        with self.app.app_context():
+            return FotoTecnico.query.count()
+
+    def test_sube_foto_valida(self):
+        self.subir(JPG_PRUEBA)
+        respuesta = self.tecnico.get("/tecnico/1/foto")
+        self.assertEqual(respuesta.headers["Content-Type"], "image/jpeg")
+        self.assertEqual(respuesta.data, JPG_PRUEBA)
+
+    def test_rechaza_archivo_que_no_es_imagen(self):
+        r = self.subir(b"<html>no es una imagen</html>", nombre="foto.jpg")
+        self.assertIn("JPG, PNG o WEBP", r.get_data(as_text=True))
+        self.assertEqual(self.total_fotos(), 0)
+
+    def test_rechaza_foto_de_mas_de_2_mb(self):
+        r = self.subir(b"\xff\xd8\xff" + b"0" * (2 * 1024 * 1024 + 1))
+        self.assertIn("2 MB", r.get_data(as_text=True))
+        self.assertEqual(self.total_fotos(), 0)
+
+    def test_quitar_foto(self):
+        self.subir(JPG_PRUEBA)
+        self.tecnico.post("/perfil", content_type="multipart/form-data",
+                          data={**self.datos, "quitar_foto": "1"})
+        self.assertEqual(self.total_fotos(), 0)
 
 
 if __name__ == "__main__":

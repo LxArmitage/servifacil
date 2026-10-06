@@ -22,7 +22,7 @@ navegación y autenticación*. Incluye:
 - Página de inicio (landing) y base de datos con **SQLAlchemy**.
 - Datos iniciales automáticos: zonas de la ciudad y un usuario administrador.
 
-## Sprint 2 (este incremento)
+## Sprint 2
 
 Corresponde al **Incremento 2** del anteproyecto: *funciones centrales y
 persistencia*. Incluye:
@@ -39,10 +39,25 @@ persistencia*. Incluye:
 - Página de **seguimiento** de cada solicitud; los teléfonos se muestran
   hasta que el técnico acepta.
 - El administrador ve las solicitudes y cuántas hay en cada estado.
-- **Pruebas automáticas** con `unittest` (19 pruebas).
+- **Pruebas automáticas** con `unittest`.
 
-Pendiente para siguientes sprints: calificaciones y reseñas, historial del
-cliente y administración de categorías y zonas.
+## Sprint 3 (este incremento)
+
+Corresponde al **Incremento 3** del anteproyecto: *continuación de módulos y
+reglas de negocio*. Incluye:
+
+- **Calificaciones y reseñas**: al terminar el servicio, el cliente pone de 1 a
+  5 estrellas y un comentario (una sola vez por solicitud).
+- **Promedio de calificación** del técnico en la búsqueda (los mejor
+  calificados salen primero), al solicitar y en su panel con las reseñas.
+- **Historial** del cliente con sus servicios terminados y rechazados; su panel
+  separa *solicitudes en proceso* y *servicios por calificar*.
+- **Foto del técnico** guardada en la base de datos (tabla `fotos_tecnicos`),
+  con validación del tipo de archivo y un máximo de 2 MB.
+- 30 pruebas automáticas.
+
+Pendiente para siguientes sprints: administración de categorías y zonas,
+reportes, seguridad y despliegue en Render.
 
 ## Tecnologías
 
@@ -61,12 +76,14 @@ servifacil/
 ├── requirements.txt
 └── app/
     ├── __init__.py        # app factory (db, login, blueprints)
-    ├── models.py          # Usuario, Cliente, Tecnico, Zona, Categoria, Solicitud
+    ├── models.py          # Usuario, Cliente, Tecnico, Zona, Categoria, Solicitud,
+    │                      # Calificacion, FotoTecnico
     ├── fechas.py          # fechas en hora de Durango
     ├── decoradores.py     # rol_requerido()
     ├── auth/routes.py     # registro, login, logout
     ├── main/routes.py     # inicio y paneles por rol
-    ├── servicios/routes.py  # perfil del técnico, búsqueda, solicitudes y estados
+    ├── servicios/routes.py  # perfil, búsqueda, solicitudes, estados, calificaciones,
+    │                        # historial y foto
     ├── templates/         # base, index, auth/, main/, servicios/
     └── static/css/
 tests/
@@ -85,6 +102,9 @@ tests/
 | `/solicitar/<id>` | Cliente | Mandar una solicitud a un técnico |
 | `/solicitud/<id>` | Cliente, técnico, admin | Detalle y seguimiento |
 | `/solicitud/<id>/estado` | Técnico | Aceptar, rechazar o avanzar el estado (POST) |
+| `/solicitud/<id>/calificar` | Cliente | Calificar un servicio terminado (POST) |
+| `/historial` | Cliente | Servicios terminados y rechazados |
+| `/tecnico/<id>/foto` | Con sesión | Foto del técnico |
 
 ## Ejecutar en local
 
