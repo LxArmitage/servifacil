@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "servicios/_estrellas.html" import estrellas %}
 {% block title %}Administración — ServiFácil{% endblock %}
 
 {% block contenido %}
@@ -47,6 +48,7 @@
                 <th>Técnico</th>
                 <th>Servicio</th>
                 <th>Estado</th>
+                <th>Calificación</th>
                 <th></th>
             </tr>
         </thead>
@@ -59,13 +61,14 @@
                 <td>{{ s.tecnico.usuario.nombre }}</td>
                 <td>{{ s.categoria.nombre }}</td>
                 <td><span class="estado estado-{{ s.estado }}">{{ s.estado_nombre }}</span></td>
+                <td>{{ estrellas(s.calificacion.estrellas) if s.calificacion else "—" }}</td>
                 <td>
                     <a href="{{ url_for('servicios.detalle', solicitud_id=s.id) }}">Ver</a>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="7" class="vacio">Todavía no hay solicitudes.</td>
+                <td colspan="8" class="vacio">Todavía no hay solicitudes.</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "servicios/_estrellas.html" import promedio %}
 {% block title %}Buscar técnico — ServiFácil{% endblock %}
 
 {% block contenido %}
@@ -41,6 +42,7 @@
 </form>
 
 <h2>Técnicos encontrados ({{ tecnicos|length }})</h2>
+<p class="nota">Ordenados de mejor a menor calificación.</p>
 <div class="tabla-contenedor">
     <table class="tabla">
         <thead>
@@ -48,6 +50,7 @@
                 <th>Nombre</th>
                 <th>Servicios</th>
                 <th>Zona</th>
+                <th>Calificación</th>
                 <!-- En celular se oculta la descripción para que quepa el botón -->
                 <th class="d-none d-md-table-cell">Descripción</th>
                 <th></th>
@@ -59,6 +62,7 @@
                 <td>{{ t.usuario.nombre }}</td>
                 <td>{{ t.categorias_texto }}</td>
                 <td>{{ t.zona.nombre if t.zona else "—" }}</td>
+                <td>{{ promedio(t) }}</td>
                 <td class="d-none d-md-table-cell">{{ t.descripcion or "" }}</td>
                 <td>
                     <a class="btn btn-primary btn-sm"
@@ -69,7 +73,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="5" class="vacio">
+                <td colspan="6" class="vacio">
                     No encontramos técnicos con esos filtros. Prueba con otra zona
                     o con todos los servicios.
                 </td>

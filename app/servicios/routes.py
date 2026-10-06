@@ -63,6 +63,8 @@ def buscar():
     if zona_id:
         consulta = consulta.filter(Tecnico.zona_id == zona_id)
     tecnicos = consulta.order_by(Usuario.nombre).all()
+    # Primero los mejor calificados (los empates quedan por nombre)
+    tecnicos.sort(key=lambda t: -(t.calificacion_resumen[0] or 0))
 
     return render_template(
         "servicios/buscar.html", categorias=categorias, zonas=zonas,

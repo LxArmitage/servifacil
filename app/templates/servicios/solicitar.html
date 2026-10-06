@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "servicios/_estrellas.html" import promedio %}
 {% block title %}Solicitar servicio — ServiFácil{% endblock %}
 
 {% block ancho %}contenedor-medio{% endblock %}
@@ -24,6 +25,10 @@
     <tr>
         <th>Descripción</th>
         <td>{{ tecnico.descripcion or "—" }}</td>
+    </tr>
+    <tr>
+        <th>Calificación</th>
+        <td>{{ promedio(tecnico) }}</td>
     </tr>
 </table>
 

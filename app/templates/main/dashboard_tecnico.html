@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "servicios/_acciones.html" import acciones %}
+{% from "servicios/_estrellas.html" import estrellas, promedio %}
 {% block title %}Mi panel — ServiFácil{% endblock %}
 
 {% block contenido %}
@@ -118,6 +119,37 @@
     </table>
 </div>
 
+<!-- RESEÑAS DE LOS CLIENTES -->
+<h2>Lo que dicen mis clientes</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Servicio</th>
+                <th>Estrellas</th>
+                <th>Comentario</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in perfil.calificaciones %}
+            <tr>
+                <td>{{ c.creada|fecha_hora }}</td>
+                <td>{{ c.solicitud.cliente.usuario.nombre }}</td>
+                <td>{{ c.solicitud.categoria.nombre }}</td>
+                <td>{{ estrellas(c.estrellas) }}</td>
+                <td>{{ c.comentario or "—" }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="vacio">Todavía no tienes calificaciones.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <!-- MIS DATOS -->
 <h2>Mis datos</h2>
 <table class="tabla tabla-datos">
@@ -144,6 +176,10 @@
     <tr>
         <th>Descripción</th>
         <td>{{ perfil.descripcion or "Sin descripción" }}</td>
+    </tr>
+    <tr>
+        <th>Calificación promedio</th>
+        <td>{{ promedio(perfil) }}</td>
     </tr>
     <tr>
         <th>Fecha de registro</th>
