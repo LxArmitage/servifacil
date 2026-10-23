@@ -21,6 +21,8 @@
             Puedes <a href="{{ url_for('servicios.buscar') }}">buscar otro técnico</a>.
         {% endif %}
     </p>
+{% elif solicitud.estado == "cancelado" %}
+    <p class="aviso">El cliente canceló esta solicitud.</p>
 {% else %}
     <table class="tabla seguimiento">
         <tr>
@@ -37,6 +39,18 @@
     <div class="botones">
         {{ acciones(solicitud, "detalle") }}
     </div>
+{% endif %}
+
+{% if current_user.rol == "cliente" and solicitud.estado == "pendiente" %}
+    <form method="POST" class="botones"
+          action="{{ url_for('servicios.cancelar', solicitud_id=solicitud.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm"
+                onclick="return confirm('¿Seguro que quieres cancelar esta solicitud?');">
+            Cancelar solicitud
+        </button>
+    </form>
+    <p class="nota text-center">Puedes cancelarla mientras el técnico no la acepte.</p>
 {% endif %}
 
 <!-- CALIFICACIÓN (solo servicios terminados) -->

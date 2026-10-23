@@ -42,7 +42,7 @@
                 <label for="categoria_id" class="form-label">Servicio</label>
                 <select name="categoria_id" id="categoria_id" class="form-select" required>
                     <option value="">Selecciona...</option>
-                    {% for c in tecnico.categorias %}
+                    {% for c in tecnico.categorias_activas %}
                         <option value="{{ c.id }}"
                             {% if datos.categoria_id == c.id|string %}selected{% endif %}>
                             {{ c.nombre }}

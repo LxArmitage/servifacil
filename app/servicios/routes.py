@@ -66,7 +66,7 @@ def puede_ver(solicitud):
 @rol_requerido("cliente")
 def buscar():
     categorias = categorias_activas()
-    zonas = Zona.query.order_by(Zona.nombre).all()
+    zonas = Zona.query.filter_by(activa=True).order_by(Zona.nombre).all()
 
     # La primera vez se propone la zona del cliente
     if "zona_id" in request.args:
@@ -75,7 +75,8 @@ def buscar():
         zona_id = current_user.cliente.zona_id
     categoria_id = request.args.get("categoria_id", type=int)
 
-    consulta = Tecnico.query.join(Usuario)
+    # Las cuentas suspendidas no aparecen en la búsqueda
+    consulta = Tecnico.query.join(Usuario).filter(Usuario.activo.is_(True))
     if categoria_id:
         consulta = consulta.filter(Tecnico.categorias.any(Categoria.id == categoria_id))
     if zona_id:
@@ -98,6 +99,9 @@ def buscar():
 @rol_requerido("cliente")
 def solicitar(tecnico_id):
     tecnico = db.get_or_404(Tecnico, tecnico_id)
+    if not tecnico.usuario.activo:
+        flash("Ese técnico no está disponible.", "warning")
+        return redirect(url_for("servicios.buscar"))
     cliente = current_user.cliente
     hoy = hoy_durango()
 
@@ -110,7 +114,7 @@ def solicitar(tecnico_id):
         errores = []
         # Solo se puede pedir un servicio que el técnico sí ofrece
         categoria = next(
-            (c for c in tecnico.categorias if c.id == categoria_id), None
+            (c for c in tecnico.categorias_activas if c.id == categoria_id), None
         )
         if categoria is None:
             errores.append("Elige uno de los servicios que ofrece el técnico.")
@@ -227,7 +231,10 @@ def cambiar_estado(solicitud_id):
 @rol_requerido("tecnico")
 def perfil_tecnico():
     tecnico = current_user.tecnico
-    zonas = Zona.query.order_by(Zona.nombre).all()
+    zonas = (
+        Zona.query.filter((Zona.activa.is_(True)) | (Zona.id == tecnico.zona_id))
+        .order_by(Zona.nombre).all()
+    )
     categorias = categorias_activas()
 
     if request.method == "POST":
@@ -271,7 +278,9 @@ def perfil_tecnico():
         tecnico.telefono = telefono
         tecnico.zona_id = zona_id
         tecnico.descripcion = descripcion
-        tecnico.categorias = Categoria.query.filter(Categoria.id.in_(ids)).all()
+        tecnico.categorias = Categoria.query.filter(
+            Categoria.id.in_(ids), Categoria.activa.is_(True)
+        ).all()
         if datos_foto:
             if tecnico.foto is None:
                 tecnico.foto = FotoTecnico(datos=datos_foto, tipo=tipo_foto)
@@ -340,14 +349,15 @@ def calificar(solicitud_id):
 def historial():
     solicitudes = (
         Solicitud.query.filter_by(cliente_id=current_user.cliente.id)
-        .filter(Solicitud.estado.in_(("terminado", "rechazado")))
+        .filter(Solicitud.estado.in_(("terminado", "rechazado", "cancelado")))
         .order_by(Solicitud.fecha_servicio.desc(), Solicitud.id.desc()).all()
     )
     terminadas = [s for s in solicitudes if s.estado == "terminado"]
     return render_template(
         "servicios/historial.html", solicitudes=solicitudes,
         total_terminadas=len(terminadas),
-        total_rechazadas=len(solicitudes) - len(terminadas),
+        total_rechazadas=sum(1 for s in solicitudes if s.estado == "rechazado"),
+        total_canceladas=sum(1 for s in solicitudes if s.estado == "cancelado"),
         total_calificadas=sum(1 for s in terminadas if s.calificacion),
     )
 
@@ -365,3 +375,29 @@ def foto_tecnico(tecnico_id):
     respuesta.headers["X-Content-Type-Options"] = "nosniff"
     respuesta.headers["Cache-Control"] = "private, max-age=3600"
     return respuesta
+
+
+# =========================================================
+# CANCELAR UNA SOLICITUD PENDIENTE (CLIENTE)
+# =========================================================
+
+@servicios_bp.route("/solicitud/<int:solicitud_id>/cancelar", methods=["POST"])
+@rol_requerido("cliente")
+def cancelar(solicitud_id):
+    solicitud = db.get_or_404(Solicitud, solicitud_id)
+    if solicitud.cliente_id != current_user.cliente.id:
+        flash("No tienes permiso para cancelar esa solicitud.", "warning")
+        return redirect(url_for("main.dashboard"))
+
+    # Solo se cancela mientras el técnico no la ha aceptado
+    if solicitud.estado != "pendiente":
+        flash(
+            f"No se puede cancelar: la solicitud está «{solicitud.estado_nombre}».",
+            "warning"
+        )
+    else:
+        solicitud.estado = "cancelado"
+        solicitud.actualizada = ahora_utc()
+        db.session.commit()
+        flash("Cancelaste la solicitud.", "info")
+    return redirect(url_for("servicios.detalle", solicitud_id=solicitud.id))

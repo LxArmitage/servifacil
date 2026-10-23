@@ -11,7 +11,10 @@ main_bp = Blueprint("main", __name__)
 def index():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
-    zonas = Zona.query.filter(Zona.nombre != "Otra").order_by(Zona.nombre).all()
+    zonas = (
+        Zona.query.filter(Zona.nombre != "Otra", Zona.activa.is_(True))
+        .order_by(Zona.nombre).all()
+    )
     categorias = Categoria.query.filter_by(activa=True).order_by(Categoria.nombre).all()
     return render_template("index.html", zonas=zonas, categorias=categorias)
 
@@ -52,7 +55,7 @@ def dashboard():
             .order_by(Solicitud.fecha_servicio).all()
         )
         cerradas = (
-            propias.filter(Solicitud.estado.in_(("terminado", "rechazado")))
+            propias.filter(Solicitud.estado.in_(("terminado", "rechazado", "cancelado")))
             .order_by(Solicitud.actualizada.desc()).all()
         )
         return render_template(

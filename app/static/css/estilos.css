@@ -260,6 +260,13 @@ input[type="radio"] {
 }
 
 
+.estado-cancelado {
+    background-color: #eeeeee;
+    border-color: #bbbbbb;
+    color: #666666;
+}
+
+
 /* Pasos del servicio en la página de detalle */
 
 .seguimiento td {

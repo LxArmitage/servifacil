@@ -22,9 +22,10 @@ ESTADO_NOMBRES = {
     "en_camino": "En camino",
     "terminado": "Terminado",
     "rechazado": "Rechazado",
+    "cancelado": "Cancelado",
 }
 
-# Orden normal del servicio (el rechazo lo termina antes)
+# Orden normal del servicio (el rechazo o la cancelación lo terminan antes)
 FLUJO_ESTADOS = ("pendiente", "aceptado", "en_camino", "terminado")
 
 # Categorías de servicio con las que arranca la plataforma
@@ -53,6 +54,8 @@ class Zona(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(80), nullable=False)
     ciudad = db.Column(db.String(80), nullable=False, default="Durango")
+    # Una zona desactivada ya no aparece en los formularios
+    activa = db.Column(db.Boolean, nullable=False, default=True)
 
     def __str__(self):
         return f"{self.nombre}, {self.ciudad}"
@@ -67,6 +70,8 @@ class Usuario(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     rol = db.Column(db.String(20), nullable=False, default="cliente")
     creado = db.Column(db.DateTime, default=ahora_utc)
+    # El administrador puede suspender cuentas que no cumplan las reglas
+    activo = db.Column(db.Boolean, nullable=False, default=True)
 
     cliente = db.relationship(
         "Cliente", backref="usuario", uselist=False,
@@ -82,6 +87,11 @@ class Usuario(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_active(self):
+        """Flask-Login no deja iniciar sesión a cuentas suspendidas."""
+        return self.activo
 
     @property
     def es_admin(self):
@@ -133,8 +143,12 @@ class Tecnico(db.Model):
         return "".join(p[0] for p in partes[:2]).upper()
 
     @property
+    def categorias_activas(self):
+        return [c for c in self.categorias if c.activa]
+
+    @property
     def categorias_texto(self):
-        return ", ".join(c.nombre for c in self.categorias)
+        return ", ".join(c.nombre for c in self.categorias_activas)
 
     @property
     def calificacion_resumen(self):
@@ -143,7 +157,8 @@ class Tecnico(db.Model):
             db.session.query(db.func.avg(Calificacion.estrellas),
                              db.func.count(Calificacion.id))
             .join(Solicitud)
-            .filter(Solicitud.tecnico_id == self.id)
+            .filter(Solicitud.tecnico_id == self.id,
+                    Calificacion.visible.is_(True))
             .one()
         )
         return (round(promedio, 1) if promedio else None), total
@@ -152,7 +167,8 @@ class Tecnico(db.Model):
     def calificaciones(self):
         return (
             Calificacion.query.join(Solicitud)
-            .filter(Solicitud.tecnico_id == self.id)
+            .filter(Solicitud.tecnico_id == self.id,
+                    Calificacion.visible.is_(True))
             .order_by(Calificacion.creada.desc()).all()
         )
 
@@ -223,6 +239,9 @@ class Calificacion(db.Model):
     estrellas = db.Column(db.Integer, nullable=False)
     comentario = db.Column(db.String(300))
     creada = db.Column(db.DateTime, default=ahora_utc)
+    # El administrador puede ocultar reseñas que no cumplan las reglas;
+    # una reseña oculta no cuenta para el promedio
+    visible = db.Column(db.Boolean, nullable=False, default=True)
 
     solicitud = db.relationship(
         "Solicitud", backref=db.backref("calificacion", uselist=False)
@@ -231,7 +250,9 @@ class Calificacion(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(Usuario, int(user_id))
+    usuario = db.session.get(Usuario, int(user_id))
+    # Si la cuenta se suspende, su sesión abierta deja de valer
+    return usuario if usuario and usuario.activo else None
 
 
 def inicializar_datos():

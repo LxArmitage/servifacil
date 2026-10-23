@@ -15,7 +15,7 @@ def registro():
     if current_user.is_authenticated:
         return redirect(url_for("main.dashboard"))
 
-    zonas = Zona.query.order_by(Zona.nombre).all()
+    zonas = Zona.query.filter_by(activa=True).order_by(Zona.nombre).all()
     categorias = Categoria.query.filter_by(activa=True).order_by(Categoria.nombre).all()
 
     if request.method == "POST":
@@ -38,7 +38,8 @@ def registro():
             errores.append("Escribe un correo válido.")
         errores += errores_de_largo(nombre=nombre, correo=correo,
                                     telefono=telefono, descripcion=descripcion)
-        if zona_id is not None and db.session.get(Zona, zona_id) is None:
+        zona = db.session.get(Zona, zona_id) if zona_id is not None else None
+        if zona_id is not None and (zona is None or not zona.activa):
             errores.append("Selecciona una zona válida.")
         if rol not in ("cliente", "tecnico"):
             errores.append("Selecciona un tipo de cuenta válido.")
@@ -76,7 +77,7 @@ def registro():
                 descripcion=descripcion, zona_id=zona_id
             )
             tecnico.categorias = Categoria.query.filter(
-                Categoria.id.in_(categorias_ids)
+                Categoria.id.in_(categorias_ids), Categoria.activa.is_(True)
             ).all()
             db.session.add(tecnico)
 
@@ -103,6 +104,10 @@ def login():
         usuario = Usuario.query.filter_by(correo=correo).first()
         if usuario is None or not usuario.check_password(password):
             flash("Correo o contraseña incorrectos.", "danger")
+            return render_template("auth/login.html", datos=request.form)
+        if not usuario.activo:
+            flash("Tu cuenta está suspendida. Comunícate con el administrador.",
+                  "danger")
             return render_template("auth/login.html", datos=request.form)
 
         login_user(usuario)

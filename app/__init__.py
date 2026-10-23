@@ -56,7 +56,9 @@ def create_app(config_class=Config):
     # Crear tablas y datos iniciales (zonas y administrador)
     with app.app_context():
         from app import models
+        from app.migraciones import agregar_columnas_faltantes
         db.create_all()
+        agregar_columnas_faltantes()
         models.inicializar_datos()
 
     return app

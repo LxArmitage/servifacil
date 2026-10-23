@@ -4,7 +4,7 @@
 
 {% block contenido %}
 <h1>Mi historial</h1>
-<p class="subtitulo">Servicios terminados y rechazados</p>
+<p class="subtitulo">Servicios terminados, rechazados y cancelados</p>
 
 <h2>Resumen</h2>
 <table class="tabla tabla-resumen">
@@ -19,6 +19,10 @@
     <tr>
         <th>Solicitudes rechazadas</th>
         <td>{{ total_rechazadas }}</td>
+    </tr>
+    <tr>
+        <th>Solicitudes canceladas</th>
+        <td>{{ total_canceladas }}</td>
     </tr>
 </table>
 
