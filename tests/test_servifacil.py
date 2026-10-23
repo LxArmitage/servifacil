@@ -13,7 +13,10 @@ from datetime import timedelta
 from config import Config
 from app import create_app, db
 from app.fechas import hoy_durango
-from app.models import Calificacion, FotoTecnico, Solicitud, Tecnico, Usuario
+from app.migraciones import agregar_columnas_faltantes
+from app.models import (
+    Calificacion, Categoria, FotoTecnico, Solicitud, Tecnico, Usuario, Zona,
+)
 
 PASSWORD = "secreto1"
 PLOMERIA, ELECTRICIDAD = "1", "2"
@@ -371,6 +374,127 @@ class PruebasSeguridad(PruebaBase):
         r = self.app.test_client().post("/login", data=dict(
             correo="admin@servifacil.com", password="admin-de-pruebas"))
         self.assertEqual(r.status_code, 302)
+
+
+# =========================================================
+# ENTREGABLE 6: CANCELAR SOLICITUDES
+# =========================================================
+
+class PruebasCancelar(PruebaBase):
+
+    def setUp(self):
+        super().setUp()
+        self.plomero = self.registrar(
+            "tecnico", "juan@ejemplo.com", categorias=[PLOMERIA])
+        self.cliente = self.registrar("cliente", "maria@ejemplo.com")
+        self.solicitar(self.cliente)
+
+    def test_cliente_cancela_solicitud_pendiente(self):
+        self.cliente.post("/solicitud/1/cancelar")
+        self.assertEqual(self.estado(1), "cancelado")
+
+    def test_no_se_cancela_una_solicitud_aceptada(self):
+        self.plomero.post("/solicitud/1/estado", data=dict(accion="aceptar"))
+        self.cliente.post("/solicitud/1/cancelar")
+        self.assertEqual(self.estado(1), "aceptado")
+
+    def test_otro_cliente_no_cancela(self):
+        otro = self.registrar("cliente", "pepe@ejemplo.com")
+        otro.post("/solicitud/1/cancelar")
+        self.assertEqual(self.estado(1), "pendiente")
+
+
+# =========================================================
+# ENTREGABLE 6: ADMINISTRACIÓN
+# =========================================================
+
+class PruebasAdministracion(PruebaBase):
+
+    def setUp(self):
+        super().setUp()
+        self.admin = self.app.test_client()
+        self.admin.post("/login", data=dict(
+            correo="admin@servifacil.com", password="admin-de-pruebas"))
+
+    def test_solo_el_administrador_entra(self):
+        cliente = self.registrar("cliente", "maria@ejemplo.com")
+        for ruta in ("/admin/catalogos", "/admin/usuarios",
+                     "/admin/resenas", "/admin/reportes"):
+            self.assertEqual(self.admin.get(ruta).status_code, 200)
+            self.assertEqual(cliente.get(ruta).status_code, 302)
+
+    def test_agregar_categoria(self):
+        self.admin.post("/admin/categorias/nueva",
+                        data=dict(nombre="Cerrajería", descripcion="Chapas"))
+        with self.app.app_context():
+            self.assertEqual(Categoria.query.filter_by(nombre="Cerrajería").count(), 1)
+
+    def test_categoria_repetida(self):
+        r = self.admin.post("/admin/categorias/nueva",
+                            data=dict(nombre="plomería", descripcion=""))
+        self.assertIn("Ya existe una categoría", r.get_data(as_text=True))
+
+    def test_categoria_desactivada_no_aparece_en_el_registro(self):
+        self.admin.post("/admin/categorias/6/estado")  # Pintura
+        html = self.app.test_client().get("/registro").get_data(as_text=True)
+        self.assertNotIn("Pintura", html)
+
+    def test_zona_desactivada_no_aparece_en_el_registro(self):
+        self.admin.post("/admin/zonas/nueva",
+                        data=dict(nombre="Jardines", ciudad="Durango"))
+        with self.app.app_context():
+            zona_id = Zona.query.filter_by(nombre="Jardines").first().id
+        self.admin.post(f"/admin/zonas/{zona_id}/estado")
+        html = self.app.test_client().get("/registro").get_data(as_text=True)
+        self.assertNotIn("Jardines", html)
+
+    def test_cuenta_suspendida_no_puede_entrar(self):
+        self.registrar("cliente", "maria@ejemplo.com")
+        with self.app.app_context():
+            usuario_id = Usuario.query.filter_by(correo="maria@ejemplo.com").first().id
+        self.admin.post(f"/admin/usuarios/{usuario_id}/estado")
+        r = self.app.test_client().post("/login", data=dict(
+            correo="maria@ejemplo.com", password=PASSWORD))
+        self.assertIn("suspendida", r.get_data(as_text=True))
+
+    def test_no_se_suspende_al_administrador(self):
+        self.admin.post("/admin/usuarios/1/estado")
+        with self.app.app_context():
+            self.assertTrue(db.session.get(Usuario, 1).activo)
+
+    def test_resena_oculta_no_cuenta_en_el_promedio(self):
+        plomero = self.registrar("tecnico", "juan@ejemplo.com", categorias=[PLOMERIA])
+        cliente = self.registrar("cliente", "maria@ejemplo.com")
+        self.solicitar(cliente)
+        for accion in ("aceptar", "en_camino", "terminar"):
+            plomero.post("/solicitud/1/estado", data=dict(accion=accion))
+        cliente.post("/solicitud/1/calificar", data=dict(estrellas="1"))
+        self.admin.post("/admin/resenas/1/visible")
+        with self.app.app_context():
+            self.assertEqual(Tecnico.query.first().calificacion_resumen, (None, 0))
+
+    def test_reportes(self):
+        html = self.admin.get("/admin/reportes").get_data(as_text=True)
+        self.assertIn("Servicios por categoría", html)
+        self.assertIn("Técnicos mejor calificados", html)
+
+
+# =========================================================
+# ENTREGABLE 6: COLUMNAS NUEVAS EN BASES DE DATOS EXISTENTES
+# =========================================================
+
+class PruebasMigraciones(PruebaBase):
+
+    def test_agrega_columnas_que_faltan(self):
+        from sqlalchemy import inspect, text
+        with self.app.app_context():
+            # Simula una base de datos creada antes del entregable 6
+            db.session.execute(text("ALTER TABLE zonas DROP COLUMN activa"))
+            db.session.commit()
+            agregar_columnas_faltantes()
+            columnas = {c["name"] for c in inspect(db.engine).get_columns("zonas")}
+            self.assertIn("activa", columnas)
+            self.assertTrue(Zona.query.first().activa)
 
 
 if __name__ == "__main__":

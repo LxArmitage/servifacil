@@ -41,7 +41,7 @@ persistencia*. Incluye:
 - El administrador ve las solicitudes y cuántas hay en cada estado.
 - **Pruebas automáticas** con `unittest`.
 
-## Sprint 3 (este incremento)
+## Sprint 3
 
 Corresponde al **Incremento 3** del anteproyecto: *continuación de módulos y
 reglas de negocio*. Incluye:
@@ -56,8 +56,25 @@ reglas de negocio*. Incluye:
   con validación del tipo de archivo y un máximo de 2 MB.
 - 30 pruebas automáticas.
 
-Pendiente para siguientes sprints: administración de categorías y zonas,
-reportes, seguridad y despliegue en Render.
+## Sprint 4 — Integración (este incremento)
+
+Corresponde a la **Versión integrada** (semana 6 del anteproyecto):
+
+- **Administración de catálogos**: agregar, editar, activar y desactivar
+  categorías de servicio y zonas.
+- **Usuarios**: el administrador suspende o reactiva cuentas; una cuenta
+  suspendida no puede iniciar sesión y su técnico deja de aparecer.
+- **Reseñas**: el administrador puede ocultar reseñas que no cumplan las
+  reglas; las ocultas no cuentan para el promedio.
+- **Reportes**: resumen general, servicios por categoría, técnicos mejor
+  calificados y solicitudes por zona.
+- El cliente puede **cancelar** una solicitud mientras está pendiente.
+- **Seguridad**: protección CSRF, contraseña del administrador y SECRET_KEY en
+  variables de entorno, cookie de sesión segura, validación de largos y de la
+  redirección después del login.
+- **Nube**: `render.yaml` para Render con PostgreSQL; `migraciones.py` agrega
+  las columnas nuevas a bases de datos que ya existían.
+- 47 pruebas automáticas.
 
 ## Tecnologías
 
@@ -81,11 +98,14 @@ servifacil/
     │                      # Calificacion, FotoTecnico
     ├── fechas.py          # fechas en hora de Durango
     ├── decoradores.py     # rol_requerido()
+    ├── validaciones.py    # largos de campos, correo y rutas internas
+    ├── migraciones.py     # agrega columnas nuevas a tablas existentes
+    ├── admin/routes.py    # catálogos, usuarios, reseñas y reportes
     ├── auth/routes.py     # registro, login, logout
     ├── main/routes.py     # inicio y paneles por rol
     ├── servicios/routes.py  # perfil, búsqueda, solicitudes, estados, calificaciones,
     │                        # historial y foto
-    ├── templates/         # base, index, auth/, main/, servicios/
+    ├── templates/         # base, index, auth/, main/, servicios/, admin/
     └── static/css/
 tests/
 └── test_servifacil.py     # pruebas automáticas
@@ -106,6 +126,11 @@ tests/
 | `/solicitud/<id>/calificar` | Cliente | Calificar un servicio terminado (POST) |
 | `/historial` | Cliente | Servicios terminados y rechazados |
 | `/tecnico/<id>/foto` | Con sesión | Foto del técnico |
+| `/solicitud/<id>/cancelar` | Cliente | Cancelar una solicitud pendiente (POST) |
+| `/admin/catalogos` | Admin | Categorías y zonas |
+| `/admin/usuarios` | Admin | Suspender o reactivar cuentas |
+| `/admin/resenas` | Admin | Ocultar o mostrar reseñas |
+| `/admin/reportes` | Admin | Reportes de uso |
 
 ## Ejecutar en local
 
