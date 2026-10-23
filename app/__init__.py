@@ -1,11 +1,14 @@
 from flask import Flask, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
+from flask_wtf.csrf import CSRFProtect, CSRFError
 
 from config import Config
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+# Protección CSRF: cada formulario POST lleva un token que el servidor revisa
+csrf = CSRFProtect()
 login_manager.login_view = "auth.login"
 login_manager.login_message = "Inicia sesión para continuar."
 login_manager.login_message_category = "warning"
@@ -17,6 +20,7 @@ def create_app(config_class=Config):
 
     db.init_app(app)
     login_manager.init_app(app)
+    csrf.init_app(app)
 
     # Filtros de Jinja para mostrar fechas en formato dd/mm/aaaa
     from app.fechas import fecha, fecha_hora
@@ -39,6 +43,15 @@ def create_app(config_class=Config):
         if current_user.is_authenticated and current_user.rol == "tecnico":
             return redirect(url_for("servicios.perfil_tecnico"))
         return redirect(url_for("main.dashboard"))
+
+    # Formulario sin token CSRF válido (por ejemplo, la página llevaba
+    # mucho tiempo abierta o la petición vino de otro sitio)
+    @app.errorhandler(CSRFError)
+    def token_invalido(error):
+        flash("La página expiró. Vuelve a intentarlo.", "warning")
+        if current_user.is_authenticated:
+            return redirect(url_for("main.dashboard"))
+        return redirect(url_for("auth.login"))
 
     # Crear tablas y datos iniciales (zonas y administrador)
     with app.app_context():

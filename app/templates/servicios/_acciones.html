@@ -3,6 +3,7 @@
 {% macro acciones(s, volver) %}
 <form method="POST" class="d-inline"
       action="{{ url_for('servicios.cambiar_estado', solicitud_id=s.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="volver" value="{{ volver }}">
     {% if s.estado == "pendiente" %}
         <button type="submit" name="accion" value="aceptar"

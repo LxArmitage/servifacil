@@ -9,6 +9,7 @@
 <p class="subtitulo">Estos datos los ven los clientes cuando buscan un servicio</p>
 
 <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <!-- FOTO -->
     <fieldset>

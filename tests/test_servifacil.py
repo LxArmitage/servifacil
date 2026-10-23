@@ -13,7 +13,7 @@ from datetime import timedelta
 from config import Config
 from app import create_app, db
 from app.fechas import hoy_durango
-from app.models import Calificacion, FotoTecnico, Solicitud, Tecnico
+from app.models import Calificacion, FotoTecnico, Solicitud, Tecnico, Usuario
 
 PASSWORD = "secreto1"
 PLOMERIA, ELECTRICIDAD = "1", "2"
@@ -24,6 +24,8 @@ class ConfigPruebas(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     ADMIN_PASSWORD = "admin-de-pruebas"
+    # El token CSRF se prueba aparte en PruebasSeguridad
+    WTF_CSRF_ENABLED = False
 
 
 class PruebaBase(unittest.TestCase):
@@ -329,6 +331,46 @@ class PruebasFotoTecnico(PruebaBase):
         self.tecnico.post("/perfil", content_type="multipart/form-data",
                           data={**self.datos, "quitar_foto": "1"})
         self.assertEqual(self.total_fotos(), 0)
+
+
+# =========================================================
+# SEGURIDAD
+# =========================================================
+
+class ConfigConCSRF(ConfigPruebas):
+    WTF_CSRF_ENABLED = True
+
+
+class PruebasSeguridad(PruebaBase):
+
+    def test_formulario_sin_token_csrf_es_rechazado(self):
+        app = create_app(ConfigConCSRF)
+        r = app.test_client().post("/registro", data=dict(
+            rol="cliente", nombre="Ana", correo="ana@ejemplo.com",
+            password=PASSWORD, password2=PASSWORD,
+        ))
+        self.assertEqual(r.status_code, 302)
+        with app.app_context():
+            self.assertEqual(Usuario.query.filter_by(rol="cliente").count(), 0)
+
+    def test_login_ignora_next_de_otro_sitio(self):
+        self.registrar("cliente", "ana@ejemplo.com")
+        r = self.app.test_client().post(
+            "/login?next=https://otro-sitio.com",
+            data=dict(correo="ana@ejemplo.com", password=PASSWORD))
+        self.assertEqual(r.headers["Location"], "/dashboard")
+
+    def test_campo_demasiado_largo(self):
+        r = self.app.test_client().post("/registro", data=dict(
+            rol="cliente", nombre="A" * 121, correo="ana@ejemplo.com",
+            password=PASSWORD, password2=PASSWORD,
+        ))
+        self.assertIn("no puede pasar de 120", r.get_data(as_text=True))
+
+    def test_admin_se_crea_con_la_variable_de_entorno(self):
+        r = self.app.test_client().post("/login", data=dict(
+            correo="admin@servifacil.com", password="admin-de-pruebas"))
+        self.assertEqual(r.status_code, 302)
 
 
 if __name__ == "__main__":

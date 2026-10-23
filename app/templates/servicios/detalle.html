@@ -61,6 +61,7 @@
     {% elif current_user.rol == "cliente" %}
         <form method="POST"
               action="{{ url_for('servicios.calificar', solicitud_id=solicitud.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <fieldset>
                 <legend>¿Cómo te fue con el servicio?</legend>
                 <div class="mb-3">
