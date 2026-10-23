@@ -24,7 +24,7 @@ def index():
 def dashboard():
     """Muestra el panel según el rol del usuario."""
     if current_user.rol == "administrador":
-        usuarios = Usuario.query.order_by(Usuario.creado).all()
+        total_usuarios = Usuario.query.count()
         total_tecnicos = Usuario.query.filter_by(rol="tecnico").count()
         total_clientes = Usuario.query.filter_by(rol="cliente").count()
 
@@ -37,8 +37,7 @@ def dashboard():
                       for clave, nombre in ESTADO_NOMBRES.items()]
         return render_template(
             "main/dashboard_admin.html",
-            usuarios=usuarios,
-            total_usuarios=len(usuarios),
+            total_usuarios=total_usuarios,
             total_tecnicos=total_tecnicos,
             total_clientes=total_clientes,
             solicitudes=solicitudes,

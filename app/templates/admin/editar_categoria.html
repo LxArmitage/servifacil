@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Editar categoría — ServiFácil{% endblock %}
+
+{% block ancho %}contenedor-chico{% endblock %}
+
+{% block contenido %}
+<h1>Editar categoría</h1>
+<p class="subtitulo">{{ categoria.nombre }}</p>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+        <label for="nombre" class="form-label">Nombre</label>
+        <input type="text" id="nombre" name="nombre" class="form-control"
+               maxlength="60" value="{{ datos.nombre or '' }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <textarea id="descripcion" name="descripcion" class="form-control" rows="3"
+                  maxlength="200">{{ datos.descripcion or '' }}</textarea>
+    </div>
+    <div class="botones">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{{ url_for('admin.catalogos') }}" class="btn btn-outline-secondary">
+            Cancelar
+        </a>
+    </div>
+</form>
+{% endblock %}

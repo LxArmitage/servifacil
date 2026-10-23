@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Usuarios — ServiFácil{% endblock %}
+
+{% block contenido %}
+<h1>Usuarios</h1>
+<p class="subtitulo">{{ total }} cuentas registradas · {{ suspendidos }} suspendidas</p>
+
+<form method="GET" class="mb-3">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="rol" class="form-label">Mostrar</label>
+            <select name="rol" id="rol" class="form-select" onchange="this.form.submit()">
+                <option value="">Todos los roles</option>
+                {% for clave, nombre in roles.items() %}
+                    <option value="{{ clave }}" {% if clave == rol %}selected{% endif %}>
+                        {{ nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <noscript><button type="submit" class="btn btn-primary btn-sm mt-2">Filtrar</button></noscript>
+</form>
+
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Zona</th>
+                <th>Registro</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.nombre }}</td>
+                <td>{{ u.correo }}</td>
+                <td>{{ u.rol_nombre }}</td>
+                <td>{{ u.perfil.zona.nombre if u.perfil and u.perfil.zona else "—" }}</td>
+                <td>{{ u.creado.strftime("%d/%m/%Y") }}</td>
+                <td>
+                    {% if u.activo %}
+                        <span class="estado estado-activo">Activa</span>
+                    {% else %}
+                        <span class="estado estado-suspendido">Suspendida</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not u.es_admin %}
+                        <form method="POST" class="d-inline"
+                              action="{{ url_for('admin.estado_usuario', usuario_id=u.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="rol" value="{{ rol }}">
+                            {% if u.activo %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('¿Seguro que quieres suspender esta cuenta?');">
+                                    Suspender
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                    Reactivar
+                                </button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" class="vacio">No hay usuarios con ese rol.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p class="nota">
+    Una cuenta suspendida no puede iniciar sesión y, si es de un técnico, deja de
+    aparecer en la búsqueda.
+</p>
+{% endblock %}

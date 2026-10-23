@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Catálogos — ServiFácil{% endblock %}
+
+{% block contenido %}
+<h1>Catálogos</h1>
+<p class="subtitulo">Categorías de servicio y zonas donde trabaja la plataforma</p>
+
+<!-- ===================== CATEGORÍAS ===================== -->
+<h2 id="categorias">Categorías de servicio</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Técnicos</th>
+                <th>Solicitudes</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in categorias %}
+            <tr>
+                <td>{{ c.nombre }}</td>
+                <td>{{ c.descripcion or "—" }}</td>
+                <td>{{ c.tecnicos|length }}</td>
+                <td>{{ solicitudes_por_categoria.get(c.id, 0) }}</td>
+                <td>
+                    {% if c.activa %}
+                        <span class="estado estado-activo">Activa</span>
+                    {% else %}
+                        <span class="estado estado-inactivo">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td class="text-nowrap">
+                    <a href="{{ url_for('admin.editar_categoria', categoria_id=c.id) }}"
+                       class="btn btn-outline-secondary btn-sm">Editar</a>
+                    <form method="POST" class="d-inline"
+                          action="{{ url_for('admin.estado_categoria', categoria_id=c.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            {{ "Desactivar" if c.activa else "Activar" }}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<form method="POST" action="{{ url_for('admin.nueva_categoria') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <fieldset>
+        <legend>Agregar categoría</legend>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="cat_nombre" class="form-label">Nombre</label>
+                <input type="text" id="cat_nombre" name="nombre" class="form-control"
+                       maxlength="60" value="{{ datos_categoria.nombre or '' }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="cat_descripcion" class="form-label">Descripción</label>
+                <input type="text" id="cat_descripcion" name="descripcion"
+                       class="form-control" maxlength="200"
+                       value="{{ datos_categoria.descripcion or '' }}">
+            </div>
+            <div class="col-md-2 mb-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Agregar</button>
+            </div>
+        </div>
+    </fieldset>
+</form>
+<p class="nota">
+    Una categoría desactivada ya no aparece al registrarse ni al buscar, pero
+    las solicitudes que ya la usan se conservan.
+</p>
+
+<!-- ======================= ZONAS ======================= -->
+<h2 id="zonas">Zonas</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Zona</th>
+                <th>Ciudad</th>
+                <th>Clientes</th>
+                <th>Técnicos</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for z in zonas %}
+            <tr>
+                <td>{{ z.nombre }}</td>
+                <td>{{ z.ciudad }}</td>
+                <td>{{ clientes_por_zona.get(z.id, 0) }}</td>
+                <td>{{ tecnicos_por_zona.get(z.id, 0) }}</td>
+                <td>
+                    {% if z.activa %}
+                        <span class="estado estado-activo">Activa</span>
+                    {% else %}
+                        <span class="estado estado-inactivo">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td class="text-nowrap">
+                    <a href="{{ url_for('admin.editar_zona', zona_id=z.id) }}"
+                       class="btn btn-outline-secondary btn-sm">Editar</a>
+                    <form method="POST" class="d-inline"
+                          action="{{ url_for('admin.estado_zona', zona_id=z.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            {{ "Desactivar" if z.activa else "Activar" }}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<form method="POST" action="{{ url_for('admin.nueva_zona') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <fieldset>
+        <legend>Agregar zona</legend>
+        <div class="row">
+            <div class="col-md-5 mb-3">
+                <label for="zona_nombre" class="form-label">Zona o colonia</label>
+                <input type="text" id="zona_nombre" name="nombre" class="form-control"
+                       maxlength="80" value="{{ datos_zona.nombre or '' }}" required>
+            </div>
+            <div class="col-md-5 mb-3">
+                <label for="zona_ciudad" class="form-label">Ciudad</label>
+                <input type="text" id="zona_ciudad" name="ciudad" class="form-control"
+                       maxlength="80" value="{{ datos_zona.ciudad or 'Durango' }}" required>
+            </div>
+            <div class="col-md-2 mb-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Agregar</button>
+            </div>
+        </div>
+    </fieldset>
+</form>
+{% endblock %}

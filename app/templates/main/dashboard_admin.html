@@ -75,37 +75,11 @@
     </table>
 </div>
 
-<h2>Lista de usuarios</h2>
-<div class="tabla-contenedor">
-    <table class="tabla">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Rol</th>
-                <th>Zona</th>
-                <th>Fecha de registro</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for usuario in usuarios %}
-            <tr>
-                <td>{{ usuario.id }}</td>
-                <td>{{ usuario.nombre }}</td>
-                <td>{{ usuario.correo }}</td>
-                <td>{{ usuario.rol_nombre }}</td>
-                <td>
-                    {% if usuario.perfil and usuario.perfil.zona %}
-                        {{ usuario.perfil.zona.nombre }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
-                <td>{{ usuario.creado.strftime("%d/%m/%Y") }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<p>
+    Administrar:
+    <a href="{{ url_for('admin.usuarios') }}">usuarios</a> ·
+    <a href="{{ url_for('admin.catalogos') }}">categorías y zonas</a> ·
+    <a href="{{ url_for('admin.resenas') }}">reseñas</a> ·
+    <a href="{{ url_for('admin.reportes') }}">reportes</a>
+</p>
 {% endblock %}

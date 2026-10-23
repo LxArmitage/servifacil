@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% from "servicios/_estrellas.html" import estrellas %}
+{% block title %}Reseñas — ServiFácil{% endblock %}
+
+{% block contenido %}
+<h1>Reseñas</h1>
+<p class="subtitulo">{{ calificaciones|length }} reseñas · {{ ocultas }} ocultas</p>
+
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Técnico</th>
+                <th>Estrellas</th>
+                <th>Comentario</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in calificaciones %}
+            <tr>
+                <td>{{ c.creada|fecha_hora }}</td>
+                <td>{{ c.solicitud.cliente.usuario.nombre }}</td>
+                <td>{{ c.solicitud.tecnico.usuario.nombre }}</td>
+                <td>{{ estrellas(c.estrellas) }}</td>
+                <td>{{ c.comentario or "—" }}</td>
+                <td>
+                    {% if c.visible %}
+                        <span class="estado estado-activo">Visible</span>
+                    {% else %}
+                        <span class="estado estado-inactivo">Oculta</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" class="d-inline"
+                          action="{{ url_for('admin.visible_resena', calificacion_id=c.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            {{ "Ocultar" if c.visible else "Mostrar" }}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="vacio">Todavía no hay reseñas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p class="nota">
+    Una reseña oculta no la ven los clientes ni el técnico y no cuenta para su
+    promedio. Sirve para comentarios ofensivos o que no tienen que ver con el
+    servicio.
+</p>
+{% endblock %}

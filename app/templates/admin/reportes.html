@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% from "servicios/_estrellas.html" import estrellas %}
+{% from "servicios/_foto.html" import foto %}
+{% block title %}Reportes — ServiFácil{% endblock %}
+
+{% block contenido %}
+<h1>Reportes</h1>
+<p class="subtitulo">Cómo se está usando la plataforma</p>
+
+<!-- RESUMEN GENERAL -->
+<h2>Resumen general</h2>
+<div class="row">
+    <div class="col-md-6">
+        <table class="tabla tabla-resumen">
+            <tr>
+                <th>Solicitudes totales</th>
+                <td>{{ total }}</td>
+            </tr>
+            {% for clave, nombre in nombres.items() %}
+            <tr>
+                <th>{{ nombre }}</th>
+                <td>{{ conteo.get(clave, 0) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="col-md-6">
+        <table class="tabla tabla-resumen">
+            <tr>
+                <th>Solicitudes aceptadas por los técnicos</th>
+                <td>{{ "%.0f%%"|format(tasa_aceptacion) if tasa_aceptacion is not none else "—" }}</td>
+            </tr>
+            <tr>
+                <th>Calificación promedio</th>
+                <td>
+                    {% if promedio_general %}
+                        {{ "%.1f"|format(promedio_general) }} {{ estrellas(promedio_general) }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        <p class="nota">
+            El porcentaje de aceptación toma solo las solicitudes que el técnico ya
+            contestó (aceptadas o rechazadas).
+        </p>
+    </div>
+</div>
+
+<!-- SERVICIOS POR CATEGORÍA -->
+<h2>Servicios por categoría</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Categoría</th>
+                <th>Solicitudes</th>
+                <th>Terminados</th>
+                <th class="col-barra"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nombre, total_cat, terminados in por_categoria %}
+            <tr>
+                <td>{{ nombre }}</td>
+                <td>{{ total_cat }}</td>
+                <td>{{ terminados }}</td>
+                <td>
+                    <div class="barra">
+                        <span style="width: {{ (total_cat * 100 / max_categoria)|round|int }}%"></span>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- TÉCNICOS MEJOR CALIFICADOS -->
+<h2>Técnicos mejor calificados</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Técnico</th>
+                <th>Servicios</th>
+                <th>Terminados</th>
+                <th>Promedio</th>
+                <th>Reseñas</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tecnico, prom, resenas in mejores %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td class="text-nowrap">{{ foto(tecnico) }} {{ tecnico.usuario.nombre }}</td>
+                <td>{{ tecnico.categorias_texto }}</td>
+                <td>{{ terminados_por_tecnico.get(tecnico.id, 0) }}</td>
+                <td class="text-nowrap">{{ "%.1f"|format(prom) }} {{ estrellas(prom) }}</td>
+                <td>{{ resenas }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="vacio">Todavía no hay técnicos calificados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- SOLICITUDES POR ZONA -->
+<h2>Solicitudes por zona</h2>
+<div class="tabla-contenedor">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Zona</th>
+                <th>Solicitudes</th>
+                <th class="col-barra"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nombre, total_zona in por_zona %}
+            <tr>
+                <td>{{ nombre }}</td>
+                <td>{{ total_zona }}</td>
+                <td>
+                    <div class="barra">
+                        <span style="width: {{ (total_zona * 100 / max_zona)|round|int }}%"></span>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

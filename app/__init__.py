@@ -31,9 +31,11 @@ def create_app(config_class=Config):
     from app.auth.routes import auth_bp
     from app.main.routes import main_bp
     from app.servicios.routes import servicios_bp
+    from app.admin.routes import admin_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(servicios_bp)
+    app.register_blueprint(admin_bp)
 
     # Archivo más grande que MAX_CONTENT_LENGTH (por ejemplo, una foto pesada)
     @app.errorhandler(413)
