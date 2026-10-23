@@ -64,6 +64,7 @@ reportes, seguridad y despliegue en Render.
 - Python + Flask + Jinja2
 - Flask-SQLAlchemy (ORM) y Flask-Login (sesiones)
 - Bootstrap 5 (interfaz)
+- Flask-WTF (protección CSRF en los formularios)
 - Base de datos: **SQLite** en local; **PostgreSQL** en la nube (vía
   `DATABASE_URL`)
 
@@ -112,10 +113,15 @@ tests/
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
+$env:ADMIN_PASSWORD = "una-contraseña-para-el-admin"   # solo la primera vez
 python run.py
 ```
 
 Abrir: http://127.0.0.1:5000/
+
+El administrador (`admin@servifacil.com`) se crea al arrancar con la contraseña
+de la variable `ADMIN_PASSWORD`; la contraseña no se guarda en el código. Los
+clientes y técnicos se crean desde la página de registro.
 
 ## Pruebas automáticas
 
@@ -125,11 +131,24 @@ python -m unittest discover -s tests -v
 
 Usan una base de datos en memoria, así que no modifican `instance/servifacil.db`.
 
-**Administrador de prueba:** correo `admin@servifacil.com` / contraseña `admin123`.
-Los clientes y técnicos se crean desde la página de registro.
+## Despliegue en la nube (Render + PostgreSQL)
 
-## Despliegue en la nube (Render)
+El archivo `render.yaml` crea la base de datos PostgreSQL y la aplicación web y
+las conecta solas:
 
-- **Build:** `pip install -r requirements.txt`
-- **Start:** `gunicorn run:app`
-- Variables: `SECRET_KEY` y `DATABASE_URL` (base PostgreSQL de Render).
+1. En https://dashboard.render.com: **New → Blueprint**.
+2. Conectar el repositorio `servifacil` de GitHub y aceptar.
+3. Escribir el valor de `ADMIN_PASSWORD` cuando Render lo pida.
+4. Esperar a que la base de datos quede *Available* y el servicio *Live*.
+
+Variables de entorno que usa la aplicación:
+
+| Variable | Para qué | En Render |
+|----------|----------|-----------|
+| `DATABASE_URL` | Conexión a PostgreSQL | La llena el Blueprint |
+| `SECRET_KEY` | Firmar las sesiones | Se genera al azar |
+| `ADMIN_PASSWORD` | Contraseña del administrador | La escribes tú |
+| `ADMIN_CORREO` | Correo del administrador (opcional) | `admin@servifacil.com` |
+
+En el plan gratuito el servicio se duerme tras 15 minutos sin visitas; la
+primera visita después tarda alrededor de un minuto en responder.
