@@ -8,6 +8,7 @@ from flask_login import current_user, login_required
 from app import db
 from app.decoradores import rol_requerido
 from app.fechas import ahora_utc, hoy_durango
+from app.validaciones import errores_de_largo
 from app.models import (
     Calificacion, Categoria, FotoTecnico, Solicitud, Tecnico, Usuario, Zona,
     ESTADO_NOMBRES, FLUJO_ESTADOS,
@@ -232,9 +233,9 @@ def perfil_tecnico():
     if request.method == "POST":
         nombre = (request.form.get("nombre") or "").strip()
         telefono = (request.form.get("telefono") or "").strip()
-        zona_id = request.form.get("zona_id") or None
+        zona_id = request.form.get("zona_id", type=int)
         descripcion = (request.form.get("descripcion") or "").strip()
-        ids = request.form.getlist("categorias")
+        ids = request.form.getlist("categorias", type=int)
         archivo = request.files.get("foto")
         quitar_foto = request.form.get("quitar_foto") == "1"
 
@@ -243,6 +244,10 @@ def perfil_tecnico():
             errores.append("El nombre es obligatorio.")
         if not ids:
             errores.append("Selecciona al menos un servicio que ofreces.")
+        errores += errores_de_largo(nombre=nombre, telefono=telefono,
+                                    descripcion=descripcion)
+        if zona_id is not None and db.session.get(Zona, zona_id) is None:
+            errores.append("Selecciona una zona válida.")
 
         datos_foto, tipo_foto = None, None
         if archivo and archivo.filename:
@@ -258,7 +263,8 @@ def perfil_tecnico():
                 flash(e, "danger")
             return render_template(
                 "servicios/perfil_tecnico.html", zonas=zonas,
-                categorias=categorias, datos=request.form, seleccionadas=ids
+                categorias=categorias, datos=request.form,
+                seleccionadas=[str(i) for i in ids]
             )
 
         current_user.nombre = nombre

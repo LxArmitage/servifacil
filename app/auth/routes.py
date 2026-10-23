@@ -5,6 +5,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 
 from app import db
 from app.models import Usuario, Cliente, Tecnico, Zona, Categoria
+from app.validaciones import CORREO_VALIDO, errores_de_largo, es_ruta_interna
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -24,14 +25,21 @@ def registro():
         password2 = request.form.get("password2") or ""
         rol = request.form.get("rol") or "cliente"
         telefono = (request.form.get("telefono") or "").strip()
-        zona_id = request.form.get("zona_id") or None
+        # type=int descarta valores que no son números (PostgreSQL los rechazaría)
+        zona_id = request.form.get("zona_id", type=int)
         descripcion = (request.form.get("descripcion") or "").strip()
-        categorias_ids = request.form.getlist("categorias")
+        categorias_ids = request.form.getlist("categorias", type=int)
 
         # Validaciones
         errores = []
         if not nombre or not correo or not password:
             errores.append("Nombre, correo y contraseña son obligatorios.")
+        elif not CORREO_VALIDO.match(correo):
+            errores.append("Escribe un correo válido.")
+        errores += errores_de_largo(nombre=nombre, correo=correo,
+                                    telefono=telefono, descripcion=descripcion)
+        if zona_id is not None and db.session.get(Zona, zona_id) is None:
+            errores.append("Selecciona una zona válida.")
         if rol not in ("cliente", "tecnico"):
             errores.append("Selecciona un tipo de cuenta válido.")
         if rol == "tecnico" and not categorias_ids:
@@ -48,7 +56,8 @@ def registro():
                 flash(e, "danger")
             return render_template(
                 "auth/registro.html", zonas=zonas, categorias=categorias,
-                datos=request.form, seleccionadas=categorias_ids
+                datos=request.form,
+                seleccionadas=[str(i) for i in categorias_ids]
             )
 
         # Crear usuario y su perfil según el rol
@@ -98,8 +107,11 @@ def login():
 
         login_user(usuario)
         flash(f"Hola de nuevo, {usuario.nombre}.", "success")
+        # Solo se regresa a páginas de este sitio
         siguiente = request.args.get("next")
-        return redirect(siguiente or url_for("main.dashboard"))
+        if not es_ruta_interna(siguiente):
+            siguiente = url_for("main.dashboard")
+        return redirect(siguiente)
 
     return render_template("auth/login.html", datos={})
 

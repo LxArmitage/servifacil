@@ -23,6 +23,7 @@ CENTRO, NUEVO_DURANGO = "1", "3"
 class ConfigPruebas(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite://"
+    ADMIN_PASSWORD = "admin-de-pruebas"
 
 
 class PruebaBase(unittest.TestCase):

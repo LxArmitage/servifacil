@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -253,12 +254,21 @@ def inicializar_datos():
         ])
         db.session.commit()
 
-    if Usuario.query.filter_by(correo="admin@servifacil.com").first() is None:
+    # El administrador se crea con la contraseña de la variable de entorno
+    # ADMIN_PASSWORD (nunca se escribe en el código)
+    if Usuario.query.filter_by(rol="administrador").first() is None:
+        password = current_app.config.get("ADMIN_PASSWORD")
+        if not password:
+            current_app.logger.warning(
+                "No hay administrador: define la variable ADMIN_PASSWORD y "
+                "reinicia la aplicación para crearlo."
+            )
+            return
         admin = Usuario(
             nombre="Administrador",
-            correo="admin@servifacil.com",
+            correo=current_app.config["ADMIN_CORREO"],
             rol="administrador",
         )
-        admin.set_password("admin123")
+        admin.set_password(password)
         db.session.add(admin)
         db.session.commit()
