@@ -1,114 +1,148 @@
-# ServiFácil — Plataforma web de servicios a domicilio
+# ServiFácil — Servicios a domicilio
 
-Proyecto de Desarrollo Web (Flask). ServiFácil conecta a **clientes** que
-necesitan un servicio en casa (plomería, electricidad, limpieza, jardinería…)
-con **técnicos** disponibles cerca de su zona.
+Aplicación web que conecta a **clientes** que necesitan un servicio en casa
+(plomería, electricidad, limpieza, jardinería, carpintería, pintura) con
+**técnicos** de su zona en Victoria de Durango, Dgo. Lleva el control de cada
+solicitud desde que se pide hasta que se califica.
 
-> Integrantes: Oswaldo Alonso Campos Ríos, Rodrigo Durán, Ricardo Enríquez.
+**Aplicación en línea:** https://servifacil.onrender.com
 
-## Sprint 1
+| | |
+|---|---|
+| **Integrantes** | Oswaldo Alonso Campos Ríos, Ricardo Enríquez, Rodrigo Durán |
+| **Asignatura** | Programación / Desarrollo Web |
+| **Docente** | Rubén Pizarro Gurrola |
+| **Grupo** | 8W — 8.º semestre |
 
-Corresponde al **Incremento 1** del anteproyecto: *estructura del proyecto,
-navegación y autenticación*. Incluye:
+> ServiFácil es una empresa ficticia; el proyecto es académico.
 
-- Estructura de proyecto Flask con **blueprints** (`auth` y `main`), pensada
-  para crecer en los siguientes sprints.
-- **Registro** de usuarios como **cliente** o **técnico** (con teléfono y zona;
-  los técnicos agregan una descripción).
-- **Inicio y cierre de sesión** con contraseñas cifradas (Flask-Login +
-  hashing de Werkzeug).
-- **Roles**: cliente, técnico y administrador, con **panel diferenciado** por
-  rol y navegación que cambia según la sesión.
-- Página de inicio (landing) y base de datos con **SQLAlchemy**.
-- Datos iniciales automáticos: zonas de la ciudad y un usuario administrador.
+## Características
 
-## Sprint 2
+### Cliente
+- Registro e inicio de sesión.
+- Búsqueda de técnicos por servicio y zona, con foto y calificación; los mejor
+  calificados salen primero.
+- Solicitud de servicio con fecha, dirección y descripción.
+- Seguimiento del estado de cada solicitud.
+- Cancelación de una solicitud mientras está pendiente.
+- Calificación de 1 a 5 estrellas con comentario al terminar el servicio.
+- Historial de servicios terminados, rechazados y cancelados.
 
-Corresponde al **Incremento 2** del anteproyecto: *funciones centrales y
-persistencia*. Incluye:
+### Técnico
+- Registro con los servicios que ofrece.
+- Perfil editable: foto, teléfono, zona, servicios y descripción.
+- Panel con solicitudes nuevas, servicios en curso y terminados.
+- Aceptar o rechazar solicitudes y avanzar su estado.
+- Consulta de su promedio y de las reseñas de sus clientes.
 
-- **Categorías de servicio** (plomería, electricidad, limpieza, jardinería,
-  carpintería y pintura) y relación N a N `tecnico_categoria`.
-- **Perfil del técnico**: elige sus servicios al registrarse y los edita en
-  *Mi perfil* junto con su teléfono, zona y descripción.
-- **Búsqueda** de técnicos por servicio y zona (página *Pedir servicio*).
-- **Solicitud de servicio** con fecha, dirección y descripción, con
-  validaciones (servicio que sí ofrece el técnico, fecha no anterior a hoy).
-- El técnico **acepta o rechaza** y avanza el **estado**: pendiente →
-  aceptado → en camino → terminado.
-- Página de **seguimiento** de cada solicitud; los teléfonos se muestran
-  hasta que el técnico acepta.
-- El administrador ve las solicitudes y cuántas hay en cada estado.
-- **Pruebas automáticas** con `unittest`.
+### Administrador
+- Resumen de usuarios y solicitudes por estado.
+- Catálogos: agregar, editar, activar y desactivar categorías y zonas.
+- Usuarios: suspender y reactivar cuentas.
+- Reseñas: ocultar o mostrar reseñas; las ocultas no cuentan para el promedio.
+- Reportes: resumen general, servicios por categoría, técnicos mejor calificados
+  y solicitudes por zona.
 
-## Sprint 3
+## Cómo funciona
 
-Corresponde al **Incremento 3** del anteproyecto: *continuación de módulos y
-reglas de negocio*. Incluye:
+### Flujo del servicio
 
-- **Calificaciones y reseñas**: al terminar el servicio, el cliente pone de 1 a
-  5 estrellas y un comentario (una sola vez por solicitud).
-- **Promedio de calificación** del técnico en la búsqueda (los mejor
-  calificados salen primero), al solicitar y en su panel con las reseñas.
-- **Historial** del cliente con sus servicios terminados y rechazados; su panel
-  separa *solicitudes en proceso* y *servicios por calificar*.
-- **Foto del técnico** guardada en la base de datos (tabla `fotos_tecnicos`),
-  con validación del tipo de archivo y un máximo de 2 MB.
-- 30 pruebas automáticas.
+1. El **técnico** se registra, elige sus servicios y completa su perfil.
+2. El **cliente** se registra, entra a *Pedir servicio*, filtra por servicio y
+   zona y da clic en *Solicitar* en el técnico que prefiera.
+3. El cliente llena el servicio, la fecha, la dirección y lo que necesita. La
+   solicitud queda **Pendiente**.
+4. El técnico la ve en *Mi panel* y la **acepta** o la **rechaza**. Al aceptar,
+   cada uno puede ver el teléfono del otro.
+5. El técnico marca *Voy en camino* y después *Marcar terminado*.
+6. El cliente **califica** el servicio, que queda en su **historial**. La reseña
+   aparece en el panel del técnico y actualiza su promedio.
 
-## Sprint 4 — Integración (este incremento)
+### Estados de una solicitud
 
-Corresponde a la **Versión integrada** (semana 6 del anteproyecto):
+```text
+Pendiente ──► Aceptado ──► En camino ──► Terminado ──► (calificación)
+    │
+    ├──► Rechazado   (lo decide el técnico)
+    └──► Cancelado   (lo decide el cliente)
+```
 
-- **Administración de catálogos**: agregar, editar, activar y desactivar
-  categorías de servicio y zonas.
-- **Usuarios**: el administrador suspende o reactiva cuentas; una cuenta
-  suspendida no puede iniciar sesión y su técnico deja de aparecer.
-- **Reseñas**: el administrador puede ocultar reseñas que no cumplan las
-  reglas; las ocultas no cuentan para el promedio.
-- **Reportes**: resumen general, servicios por categoría, técnicos mejor
-  calificados y solicitudes por zona.
-- El cliente puede **cancelar** una solicitud mientras está pendiente.
-- **Seguridad**: protección CSRF, contraseña del administrador y SECRET_KEY en
-  variables de entorno, cookie de sesión segura, validación de largos y de la
-  redirección después del login.
-- **Nube**: `render.yaml` para Render con PostgreSQL; `migraciones.py` agrega
-  las columnas nuevas a bases de datos que ya existían.
-- 47 pruebas automáticas.
+Los estados solo avanzan en ese orden y únicamente los cambia el técnico asignado.
+
+### Reglas principales
+
+- Solo se puede pedir un servicio que el técnico ofrece, con fecha de hoy en
+  adelante.
+- Una solicitud solo la ven el cliente que la hizo, el técnico asignado y el
+  administrador.
+- Un servicio se califica una sola vez, solo cuando está terminado y solo por el
+  cliente que lo pidió.
+- Una cuenta suspendida no puede iniciar sesión; si es de un técnico, deja de
+  aparecer en la búsqueda.
+- Las categorías y zonas no se borran, se desactivan, para conservar las
+  solicitudes anteriores.
 
 ## Tecnologías
 
-- Python + Flask + Jinja2
-- Flask-SQLAlchemy (ORM) y Flask-Login (sesiones)
-- Bootstrap 5 (interfaz)
-- Flask-WTF (protección CSRF en los formularios)
-- Base de datos: **SQLite** en local; **PostgreSQL** en la nube (vía
-  `DATABASE_URL`)
+| Parte | Herramienta |
+|-------|-------------|
+| Backend | Python, Flask, Jinja2 |
+| Datos | Flask-SQLAlchemy; PostgreSQL en la nube y SQLite en local |
+| Sesiones y seguridad | Flask-Login, Flask-WTF (CSRF), hash de Werkzeug |
+| Interfaz | HTML5, CSS3, Bootstrap 5 y `static/css/estilos.css` |
+| Despliegue | Render, Gunicorn |
+| Control de versiones | Git y GitHub |
+| Pruebas | `unittest` |
 
-## Estructura
+## Arquitectura
+
+```text
+Navegador ──HTTPS──► Render ──► Gunicorn + Flask ──► PostgreSQL (Render)
+                                      │
+                                      └── plantillas Jinja2 + Bootstrap
+```
+
+## Base de datos
+
+| Tabla | Contenido | Relaciones |
+|-------|-----------|------------|
+| `usuarios` | Cuenta, rol y si está activa | Base de clientes y técnicos |
+| `clientes` | Teléfono y zona | 1 a 1 con `usuarios` |
+| `tecnicos` | Teléfono, zona y descripción | 1 a 1 con `usuarios` |
+| `fotos_tecnicos` | Imagen del técnico | 1 a 1 con `tecnicos` |
+| `categorias` | Tipos de servicio | N a N con `tecnicos` |
+| `tecnico_categoria` | Servicios de cada técnico | Une `tecnicos` y `categorias` |
+| `zonas` | Colonias y ciudades con servicio | Clientes, técnicos y solicitudes |
+| `solicitudes` | Fecha, dirección, descripción y estado | 1 cliente, 1 técnico, 1 categoría, 1 zona |
+| `calificaciones` | Estrellas, comentario y si es visible | 1 a 1 con `solicitudes` |
+
+Las tablas, las zonas, las categorías iniciales y el administrador se crean solos
+al arrancar. `app/migraciones.py` agrega a las tablas existentes las columnas que
+se sumaron después.
+
+## Estructura del proyecto
 
 ```text
 servifacil/
-├── run.py                 # punto de entrada
-├── config.py              # configuración (SQLite / PostgreSQL)
+├── run.py                   # punto de entrada
+├── config.py                # configuración y variables de entorno
+├── render.yaml              # despliegue en Render
 ├── requirements.txt
-└── app/
-    ├── __init__.py        # app factory (db, login, blueprints)
-    ├── models.py          # Usuario, Cliente, Tecnico, Zona, Categoria, Solicitud,
-    │                      # Calificacion, FotoTecnico
-    ├── fechas.py          # fechas en hora de Durango
-    ├── decoradores.py     # rol_requerido()
-    ├── validaciones.py    # largos de campos, correo y rutas internas
-    ├── migraciones.py     # agrega columnas nuevas a tablas existentes
-    ├── admin/routes.py    # catálogos, usuarios, reseñas y reportes
-    ├── auth/routes.py     # registro, login, logout
-    ├── main/routes.py     # inicio y paneles por rol
-    ├── servicios/routes.py  # perfil, búsqueda, solicitudes, estados, calificaciones,
-    │                        # historial y foto
-    ├── templates/         # base, index, auth/, main/, servicios/, admin/
-    └── static/css/
-tests/
-└── test_servifacil.py     # pruebas automáticas
+├── app/
+│   ├── __init__.py          # crea la aplicación y registra los módulos
+│   ├── models.py            # tablas y datos iniciales
+│   ├── migraciones.py       # columnas nuevas en tablas existentes
+│   ├── validaciones.py      # largos, correo y rutas internas
+│   ├── decoradores.py       # rol_requerido()
+│   ├── fechas.py            # fechas en hora de Durango
+│   ├── auth/routes.py       # registro, inicio y cierre de sesión
+│   ├── main/routes.py       # inicio y paneles por rol
+│   ├── servicios/routes.py  # perfil, búsqueda, solicitudes y calificaciones
+│   ├── admin/routes.py      # catálogos, usuarios, reseñas y reportes
+│   ├── templates/           # páginas Jinja2
+│   └── static/css/          # hoja de estilos
+└── tests/
+    └── test_servifacil.py   # pruebas automáticas
 ```
 
 ## Rutas
@@ -118,35 +152,37 @@ tests/
 | `/` | Todos | Página de inicio |
 | `/registro`, `/login`, `/logout` | Todos | Cuenta y sesión |
 | `/dashboard` | Con sesión | Panel según el rol |
-| `/perfil` | Técnico | Editar servicios, zona y contacto |
+| `/perfil` | Técnico | Editar foto, servicios, zona y contacto |
+| `/tecnico/<id>/foto` | Con sesión | Foto del técnico |
 | `/buscar` | Cliente | Buscar técnicos por servicio y zona |
 | `/solicitar/<id>` | Cliente | Mandar una solicitud a un técnico |
 | `/solicitud/<id>` | Cliente, técnico, admin | Detalle y seguimiento |
-| `/solicitud/<id>/estado` | Técnico | Aceptar, rechazar o avanzar el estado (POST) |
-| `/solicitud/<id>/calificar` | Cliente | Calificar un servicio terminado (POST) |
-| `/historial` | Cliente | Servicios terminados y rechazados |
-| `/tecnico/<id>/foto` | Con sesión | Foto del técnico |
-| `/solicitud/<id>/cancelar` | Cliente | Cancelar una solicitud pendiente (POST) |
+| `/solicitud/<id>/estado` | Técnico | Aceptar, rechazar o avanzar el estado |
+| `/solicitud/<id>/cancelar` | Cliente | Cancelar una solicitud pendiente |
+| `/solicitud/<id>/calificar` | Cliente | Calificar un servicio terminado |
+| `/historial` | Cliente | Servicios terminados, rechazados y cancelados |
 | `/admin/catalogos` | Admin | Categorías y zonas |
 | `/admin/usuarios` | Admin | Suspender o reactivar cuentas |
 | `/admin/resenas` | Admin | Ocultar o mostrar reseñas |
 | `/admin/reportes` | Admin | Reportes de uso |
 
-## Ejecutar en local
+## Instalación en local
+
+Requiere Python 3.13 o superior.
 
 ```powershell
+git clone https://github.com/LxArmitage/servifacil.git
+cd servifacil
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
-$env:ADMIN_PASSWORD = "una-contraseña-para-el-admin"   # solo la primera vez
+$env:ADMIN_PASSWORD = "elige-una-contraseña"   # crea al administrador
 python run.py
 ```
 
-Abrir: http://127.0.0.1:5000/
-
-El administrador (`admin@servifacil.com`) se crea al arrancar con la contraseña
-de la variable `ADMIN_PASSWORD`; la contraseña no se guarda en el código. Los
-clientes y técnicos se crean desde la página de registro.
+Abrir http://127.0.0.1:5000/. Sin `DATABASE_URL` la aplicación usa SQLite en
+`instance/servifacil.db`. El administrador entra con `admin@servifacil.com` y la
+contraseña de `ADMIN_PASSWORD`; clientes y técnicos se crean en *Registrarse*.
 
 ## Pruebas automáticas
 
@@ -154,26 +190,39 @@ clientes y técnicos se crean desde la página de registro.
 python -m unittest discover -s tests -v
 ```
 
-Usan una base de datos en memoria, así que no modifican `instance/servifacil.db`.
+Son 47 pruebas de registro, perfil, solicitudes, estados, calificaciones, foto,
+administración y seguridad. Usan una base de datos en memoria.
 
-## Despliegue en la nube (Render + PostgreSQL)
+## Despliegue en Render
 
-El archivo `render.yaml` crea la base de datos PostgreSQL y la aplicación web y
-las conecta solas:
+`render.yaml` crea la base de datos PostgreSQL y el servicio web y los conecta:
 
 1. En https://dashboard.render.com: **New → Blueprint**.
-2. Conectar el repositorio `servifacil` de GitHub y aceptar.
+2. Conectar este repositorio.
 3. Escribir el valor de `ADMIN_PASSWORD` cuando Render lo pida.
-4. Esperar a que la base de datos quede *Available* y el servicio *Live*.
+4. Esperar a que la base quede *Available* y el servicio *Live*.
 
-Variables de entorno que usa la aplicación:
+Cada cambio en la rama `main` se despliega de forma automática.
 
 | Variable | Para qué | En Render |
 |----------|----------|-----------|
 | `DATABASE_URL` | Conexión a PostgreSQL | La llena el Blueprint |
 | `SECRET_KEY` | Firmar las sesiones | Se genera al azar |
-| `ADMIN_PASSWORD` | Contraseña del administrador | La escribes tú |
+| `ADMIN_PASSWORD` | Contraseña del administrador | Se escribe al crear el Blueprint |
 | `ADMIN_CORREO` | Correo del administrador (opcional) | `admin@servifacil.com` |
 
-En el plan gratuito el servicio se duerme tras 15 minutos sin visitas; la
-primera visita después tarda alrededor de un minuto en responder.
+## Seguridad
+
+- Contraseñas guardadas con hash; las claves viven en variables de entorno.
+- Protección CSRF en todos los formularios.
+- Cookie de sesión HttpOnly, SameSite=Lax y Secure en la nube.
+- Permisos revisados en el servidor según el rol y el dueño de cada solicitud.
+- Validación en el servidor de campos, largos, fechas y tipo real de las imágenes.
+- Consultas mediante ORM, sin SQL armado con datos del usuario.
+
+## Limitaciones
+
+- En el plan gratuito de Render el servicio se duerme tras 15 minutos sin visitas;
+  la primera visita después puede tardar cerca de un minuto.
+- Fuera del alcance de esta versión: pagos en línea, aplicación móvil, chat en
+  tiempo real y ubicación por GPS.
