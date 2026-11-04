@@ -62,5 +62,8 @@ def create_app(config_class=Config):
         db.create_all()
         agregar_columnas_faltantes()
         models.inicializar_datos()
+        if app.config["DEMO_DATOS"]:
+            from app.demo import cargar_demo
+            cargar_demo()
 
     return app

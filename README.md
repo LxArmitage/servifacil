@@ -16,6 +16,30 @@ solicitud desde que se pide hasta que se califica.
 
 > ServiFácil es una empresa ficticia; el proyecto es académico.
 
+## Cómo probarla
+
+**En línea:** abrir https://servifacil.onrender.com. Si el servicio estaba dormido,
+la primera carga tarda cerca de un minuto.
+
+**En una computadora con Windows:** descargar el proyecto y dar doble clic en
+`iniciar.bat`. Requiere Python e internet la primera vez; el navegador se abre solo.
+
+La aplicación ya trae datos de ejemplo. Todas estas cuentas son ficticias y usan la
+contraseña `demo1234`:
+
+| Rol | Correo | Nombre |
+|-----|--------|--------|
+| Cliente | `cliente@servifacil.test` | María López |
+| Técnico | `tecnico@servifacil.test` | Jorge Ramírez |
+
+También existen `cliente2` y `cliente3`, y `tecnico2`, `tecnico3` y `tecnico4`, con
+el mismo dominio. El administrador es `admin@servifacil.com`; con `iniciar.bat` su
+contraseña es `admin1234`, y en línea la proporciona el equipo.
+
+Para ver un servicio de principio a fin, entrar con cada cuenta en un navegador
+distinto o en una ventana de incógnito: Jorge ya tiene una solicitud **Pendiente**
+de María y ella tiene un servicio **Terminado** por calificar.
+
 ## Características
 
 ### Cliente
@@ -118,7 +142,8 @@ Navegador ──HTTPS──► Render ──► Gunicorn + Flask ──► Postg
 
 Las tablas, las zonas, las categorías iniciales y el administrador se crean solos
 al arrancar. `app/migraciones.py` agrega a las tablas existentes las columnas que
-se sumaron después.
+se sumaron después. `app/demo.py` carga una sola vez las cuentas y solicitudes de
+ejemplo; la variable `DEMO_DATOS=0` lo desactiva.
 
 ## Estructura del proyecto
 
@@ -127,11 +152,13 @@ servifacil/
 ├── run.py                   # punto de entrada
 ├── config.py                # configuración y variables de entorno
 ├── render.yaml              # despliegue en Render
+├── iniciar.bat              # inicia la app en Windows con doble clic
 ├── requirements.txt
 ├── app/
 │   ├── __init__.py          # crea la aplicación y registra los módulos
 │   ├── models.py            # tablas y datos iniciales
 │   ├── migraciones.py       # columnas nuevas en tablas existentes
+│   ├── demo.py              # cuentas y solicitudes de ejemplo
 │   ├── validaciones.py      # largos, correo y rutas internas
 │   ├── decoradores.py       # rol_requerido()
 │   ├── fechas.py            # fechas en hora de Durango
@@ -190,8 +217,8 @@ contraseña de `ADMIN_PASSWORD`; clientes y técnicos se crean en *Registrarse*.
 python -m unittest discover -s tests -v
 ```
 
-Son 47 pruebas de registro, perfil, solicitudes, estados, calificaciones, foto,
-administración y seguridad. Usan una base de datos en memoria.
+Son 51 pruebas de registro, perfil, solicitudes, estados, calificaciones, foto,
+administración, seguridad y datos de ejemplo. Usan una base de datos en memoria.
 
 ## Despliegue en Render
 

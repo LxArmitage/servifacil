@@ -36,3 +36,7 @@ class Config:
     # Cuenta de administrador que se crea al arrancar si todavía no existe
     ADMIN_CORREO = os.environ.get("ADMIN_CORREO", "admin@servifacil.com")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+
+    # Cuentas y solicitudes de ejemplo para presentar la aplicación
+    # (DEMO_DATOS=0 las desactiva; ver app/demo.py)
+    DEMO_DATOS = os.environ.get("DEMO_DATOS", "1") == "1"

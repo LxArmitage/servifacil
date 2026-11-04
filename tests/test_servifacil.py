@@ -12,6 +12,7 @@ from datetime import timedelta
 
 from config import Config
 from app import create_app, db
+from app.demo import PASSWORD_DEMO, SOLICITUDES, cargar_demo
 from app.fechas import hoy_durango
 from app.migraciones import agregar_columnas_faltantes
 from app.models import (
@@ -27,6 +28,7 @@ class ConfigPruebas(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     ADMIN_PASSWORD = "admin-de-pruebas"
+    DEMO_DATOS = False
     # El token CSRF se prueba aparte en PruebasSeguridad
     WTF_CSRF_ENABLED = False
 
@@ -495,6 +497,46 @@ class PruebasMigraciones(PruebaBase):
             columnas = {c["name"] for c in inspect(db.engine).get_columns("zonas")}
             self.assertIn("activa", columnas)
             self.assertTrue(Zona.query.first().activa)
+
+
+class ConfigConDemo(ConfigPruebas):
+    DEMO_DATOS = True
+
+
+class PruebasDemo(PruebaBase):
+
+    def setUp(self):
+        self.app = create_app(ConfigConDemo)
+
+    def entrar(self, correo, password=PASSWORD_DEMO):
+        cliente = self.app.test_client()
+        cliente.post("/login", data=dict(correo=correo, password=password))
+        return cliente
+
+    def test_crea_datos_una_sola_vez(self):
+        with self.app.app_context():
+            self.assertEqual(Solicitud.query.count(), len(SOLICITUDES))
+            cargar_demo()
+            self.assertEqual(Solicitud.query.count(), len(SOLICITUDES))
+
+    def test_cada_servicio_lo_ofrece_su_tecnico(self):
+        with self.app.app_context():
+            for solicitud in Solicitud.query.all():
+                self.assertIn(solicitud.categoria, solicitud.tecnico.categorias)
+
+    def test_cuentas_entran_y_ven_sus_paginas(self):
+        cliente = self.entrar("cliente@servifacil.test")
+        self.assertEqual(cliente.get("/historial").status_code, 200)
+        self.assertIn("Jorge Ramírez",
+                      cliente.get("/buscar").get_data(as_text=True))
+        tecnico = self.entrar("tecnico@servifacil.test")
+        self.assertIn("Cambiar la llave de la regadera",
+                      tecnico.get("/dashboard").get_data(as_text=True))
+
+    def test_administrador_ve_reportes_con_datos(self):
+        admin = self.entrar("admin@servifacil.com", "admin-de-pruebas")
+        self.assertIn("Jorge Ramírez",
+                      admin.get("/admin/reportes").get_data(as_text=True))
 
 
 if __name__ == "__main__":
